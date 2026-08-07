@@ -1,0 +1,17 @@
+{
+  "name": "epu-attendance-server",
+  "version": "3.0.0",
+  "description": "سیستەمی تۆماری ئامادەبوونی فەرمانبەران — EPU (Node.js + Neon Postgres)",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.13.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

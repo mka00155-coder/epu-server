@@ -567,6 +567,13 @@ table.att td.namecell{white-space:nowrap}
 .staff-table td.au-det{white-space:pre-line;text-align:start;line-height:1.85;min-width:280px;max-width:680px;word-break:break-word;font-size:12.5px;color:var(--text)}
 .staff-table td.au-t{direction:ltr;white-space:nowrap;font-size:12.5px;color:var(--text-muted)}
 .ver-warn{position:fixed;z-index:160;inset-inline:12px;top:76px;max-width:760px;margin:0 auto;background:#fff4d6;color:#5a3d00;border:1px solid #e0b64a;border-radius:14px;padding:12px 16px;font-size:13px;line-height:1.9;box-shadow:0 10px 30px rgba(0,0,0,.25)}.ver-warn button{margin-inline-start:8px;border:1px solid #c99a2e;background:#fff;border-radius:8px;padding:2px 12px;cursor:pointer;font:inherit}
+.dg-rows{display:grid;gap:12px;margin-top:10px}
+.dg-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;background:var(--surface-2);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
+.dg-lbl b{display:block;font-size:14px}.dg-lbl small{color:var(--text-muted);font-weight:600;font-size:12px;line-height:1.7}
+.dg-seg{display:inline-flex;gap:4px;padding:4px;border-radius:12px;background:var(--surface);border:1px solid var(--border-strong)}
+.dg-seg button{border:0;background:transparent;color:var(--text-muted);font:inherit;font-weight:800;font-size:13px;padding:8px 16px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.dg-seg button.on{background:var(--teal);color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.dg-seg.dg-sm button{padding:6px 12px;font-size:12.5px}
 .au-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:10px 2px 0;color:var(--text-muted);font-size:12.5px;font-weight:700}
 @media(max-width:760px){ .staff-table td.au-det,.staff-table td.au-ac{grid-column:1/-1} .staff-table td.au-det{min-width:0;max-width:none} }
 /* ---- پرۆفایلی من + وێنەی ئادمین ---- */
@@ -1062,6 +1069,10 @@ table.att td.namecell{white-space:nowrap}
         <span class="track"><span class="thumb"></span></span>
         <span class="switch-label">ناوەکان لای ڕاست</span>
       </label>
+      <div class="tpl-picker" id="digits-quick" style="display:none">
+        <span class="switch-label">🔢 ژمارە:</span>
+        <div class="dg-seg dg-sm" data-w="main"><button type="button" data-v="en" onclick="setDigits('main','en')"><span dir="ltr">123</span></button><button type="button" data-v="ar" onclick="setDigits('main','ar')"><span dir="ltr">١٢٣</span></button></div>
+      </div>
       <div class="tpl-picker">
         <span class="switch-label">🎨 تەمپلێت:</span>
         <select id="tplSel" class="ab-select" onchange="setTemplate(this.value)">
@@ -1124,6 +1135,17 @@ table.att td.namecell{white-space:nowrap}
             <input type="text" id="set-inst-en" style="width:300px;direction:ltr" placeholder="Taq Taq Technical Institute">
           </div>
           <button class="btn" onclick="saveBranding()">💾 پاشەکەوتکردن</button>
+        </div>
+      </div>
+
+      <div class="card" id="digits-card">
+        <h3>🔢 جۆری ژمارەکان <span style="font-size:12px;font-weight:600;color:var(--text-muted)">(تەنها بەڕێوەبەری سەرەکی)</span></h3>
+        <p class="hint">هەڵبژێرە ژمارەکان بە ئینگلیزی (123) یان بە کوردی (١٢٣) دەربکەون — لە شاشە و لە چاپدا. گۆڕانکارییەکە بۆ هەموو ئامێرەکان دەگۆڕێت. ئەو تێکستانەی خۆت نووسیوتن (ناونیشان، ساڵی خوێندن...) ناگۆڕێن.</p>
+        <div class="dg-rows">
+          <div class="dg-row"><div class="dg-lbl"><b>خشتەی هاتن و ڕۆشتن</b><small>ژمارەی ڕیز و بەروارەکانی سەرەوەی خشتە (گرێبەست / هەمیشەیی / کارگوزار)</small></div>
+            <div class="dg-seg" data-w="main"><button type="button" data-v="en" onclick="setDigits('main','en')"><span dir="ltr">123</span> ئینگلیزی</button><button type="button" data-v="ar" onclick="setDigits('main','ar')"><span dir="ltr">١٢٣</span> کوردی</button></div></div>
+          <div class="dg-row"><div class="dg-lbl"><b>خشتەی دەوام</b><small>ژمارەی ڕیز، کۆکراوەکان و ژمارەی لاپەڕە</small></div>
+            <div class="dg-seg" data-w="sheet"><button type="button" data-v="en" onclick="setDigits('sheet','en')"><span dir="ltr">123</span> ئینگلیزی</button><button type="button" data-v="ar" onclick="setDigits('sheet','ar')"><span dir="ltr">١٢٣</span> کوردی</button></div></div>
         </div>
       </div>
 
@@ -1444,6 +1466,12 @@ let showBadge=true;
 let coverTitle="تۆماری ئامادەبوونی فەرمانبەران";
 let coverSubtitle="ساڵی خوێندنی ٢٠٢٥ - ٢٠٢٦";
 let coverNote="";
+/* ژمارەکان: en = 1 2 3 (بنەڕەت) · ar = ١ ٢ ٣ — بۆ خشتەی هاتن و ڕۆشتن (ڕیز و بەروار). بەڕێوەبەری سەرەکی لە «بەڕێوەبردن» دەیگۆڕێت. */
+let digitsMain='en';
+const AR_DIG='٠١٢٣٤٥٦٧٨٩';
+const nd=n=>{ const t=String(n); return digitsMain==='ar'?t.replace(/\d/g,d=>AR_DIG[d]):t; };
+const NEED_SERVER='3.5.0';
+const verLt=(a,b)=>{ const x=String(a||'0').split('.').map(Number), y=String(b).split('.').map(Number); for(let i=0;i<3;i++){ const p=x[i]||0,q=y[i]||0; if(p!==q) return p<q; } return false; };
 
 /* ==========================================================================
    بارکردنی داتا لە سێرڤەرەوە
@@ -1460,6 +1488,7 @@ async function loadSettings(){
   if(s.coverTitle!=null) coverTitle=s.coverTitle;
   if(s.coverSubtitle!=null) coverSubtitle=s.coverSubtitle;
   if(s.coverNote!=null) coverNote=s.coverNote;
+  digitsMain=(s.digitsMain==='ar')?'ar':'en';
   applyBranding();
 }
 function applyBranding(){
@@ -1475,6 +1504,7 @@ function applyBranding(){
   const c2=document.getElementById('set-cover-sub'); if(c2) c2.value=coverSubtitle;
   const c3=document.getElementById('set-cover-note'); if(c3) c3.value=coverNote;
   const ik=document.getElementById('set-imgbb'); if(ik) ik.value=(window.appSettings&&window.appSettings.imgbbKey)||'';
+  try{ syncDigitsUI(); }catch(e){}
 }
 async function saveBranding(){
   if(!currentUser||!currentUser.isSuper) return toast('تەنها بەڕێوەبەری سەرەکی دەتوانێت ئەمە بگۆڕێت.','error');
@@ -1535,6 +1565,25 @@ function loadNameLayout(){
   if(app){ app.classList.toggle('names-right',r); }
   const rt=document.getElementById('right-toggle'); if(rt) rt.checked=r;
 }
+function sheetDigits(){ return window.sheetDigitsVal==='en'?'en':'ar'; }
+function syncDigitsUI(){
+  document.querySelectorAll('.dg-seg').forEach(seg=>{ const cur=seg.dataset.w==='main'?digitsMain:sheetDigits(); seg.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===cur)); });
+}
+async function setDigits(which,v){
+  if(!currentUser||!currentUser.isSuper) return toast('تەنها بەڕێوەبەری سەرەکی دەتوانێت جۆری ژمارەکان بگۆڕێت.','error');
+  try{
+    if(which==='main'){
+      const s=await API.put('/settings',{digitsMain:v});
+      if(s.digitsMain!==v){ staleServerWarn(true); return toast('جۆری ژمارە پاشەکەوت نەکرا: server.js ی سەر سێرڤەر کۆنە. server.js ی نوێ دابنێ و Deploy بکە.','error'); }
+      digitsMain=v; window.appSettings=Object.assign(window.appSettings||{},{digitsMain:v}); try{ generateSystem(); }catch(e){}
+    }else{
+      const r=await API.put('/sheet/config',{digits:v});
+      if(!r.config||r.config.digits!==v){ staleServerWarn(true); return toast('جۆری ژمارە پاشەکەوت نەکرا: server.js ی سەر سێرڤەر کۆنە. server.js ی نوێ دابنێ و Deploy بکە.','error'); }
+      window.sheetDigitsVal=r.config.digits; try{ if(window.EPU_SHEET&&window.EPU_SHEET.state.cfg) window.EPU_SHEET.state.cfg=r.config; }catch(e){}
+    }
+    syncDigitsUI(); toast('جۆری ژمارەکان گۆڕدرا.','success');
+  }catch(e){ toast(apiErr(e),'error'); }
+}
 async function toggleBadge(){
   showBadge=document.getElementById('badge-toggle').checked;
   try{ await API.put('/settings',{showBadge}); generateSystem(); }
@@ -1575,10 +1624,10 @@ async function handleLogin(){
 }
 function staleServerWarn(force){
   try{
-    if(!force && (window.SERVER_VER || !currentUser || !currentUser.isSuper)) return;
+    if(!force && (!currentUser || !currentUser.isSuper || !verLt(window.SERVER_VER,NEED_SERVER))) return;
     if(document.getElementById('ver-warn')) return;
     const d=document.createElement('div'); d.id='ver-warn'; d.className='ver-warn';
-    d.innerHTML='<b>⚠️ server.js ی سەر سێرڤەر کۆنە.</b> بەشێک لە تایبەتمەندییە نوێیەکان (مێژووی چالاکی، وێنە/پاسۆردی ئادمین، ناونیشانی خشتەی دەوام) کار ناکەن. server.js ی وەشانی ٣.٤.٠ لە فۆڵدەری سەرەکی پرۆژە دابنێ، Deploy بکە و دووبارە Ctrl+Shift+R بکە. <button type="button" onclick="this.parentNode.remove()">داخستن</button>';
+    d.innerHTML='<b>⚠️ server.js ی سەر سێرڤەر کۆنە.</b> بەشێک لە تایبەتمەندییە نوێیەکان (مێژووی چالاکی، وێنە/پاسۆردی ئادمین، ناونیشان و ژمارەکانی خشتە) کار ناکەن. server.js ی نوێ لە فۆڵدەری سەرەکی پرۆژە دابنێ، Deploy بکە و دووبارە Ctrl+Shift+R بکە. <button type="button" onclick="this.parentNode.remove()">داخستن</button>';
     document.body.appendChild(d);
   }catch(e){}
 }
@@ -1590,6 +1639,7 @@ async function afterLogin(){
   document.getElementById('main-system').style.display='block';
   document.getElementById('user-label').textContent=currentUser.username+(currentUser.isSuper?' • سەرەکی':'');
   document.getElementById('tab-admin').style.display=currentUser.isSuper?'inline-flex':'none';
+  { const dq=document.getElementById('digits-quick'); if(dq) dq.style.display=currentUser.isSuper?'':'none'; try{ syncDigitsUI(); }catch(e){} }
   const canProfile=currentUser.isSuper||currentUser.allowProfile;
   const canScan=currentUser.isSuper||currentUser.allowScan;
   const canReport=currentUser.isSuper||currentUser.allowReport;
@@ -1713,7 +1763,7 @@ function switchTabCore(tab){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   if(tab==='admin_panel'){
     // ئادمینەکان خۆیان دەتوانن پاسۆرد/وێنە بگۆڕن — هەر جارێک ئەم تابە دەکرێتەوە لیستەکە تازە دەکرێتەوە تاکو بەڕێوەبەری سەرەکی نوێترین دەبینێت
-    if(currentUser&&currentUser.isSuper){ loadAdmins().then(renderAdminList).catch(()=>{}); }
+    if(currentUser&&currentUser.isSuper){ loadAdmins().then(renderAdminList).catch(()=>{}); API.get('/sheet/config').then(r=>{ window.sheetDigitsVal=(r.config&&r.config.digits)||'ar'; syncDigitsUI(); }).catch(()=>{}); syncDigitsUI(); }
     document.getElementById('tab-admin').classList.add('active');
     document.getElementById('app').style.display='none';
     document.querySelector('.sheet-toolbar').style.display='none';
@@ -1817,7 +1867,7 @@ function activeList(){
 function onSearch(){ searchTerm=document.getElementById('searchBox').value.trim(); generateSystem(); }
 
 function buildCover(startVal,endVal){
-  const fmtd=(s)=>{ if(!s) return ''; const d=parseDate(s); return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear(); };
+  const fmtd=(s)=>{ if(!s) return ''; const d=parseDate(s); return nd(d.getDate())+'/'+nd(d.getMonth()+1)+'/'+nd(d.getFullYear()); };
   const range = startVal&&endVal ? (fmtd(startVal)+' — '+fmtd(endVal)) : '';
   return `<div class="cover-inner"><div class="cover-frame">
       <div class="cover-logo"></div>
@@ -1843,13 +1893,13 @@ function buildAtt(withTitle,names,startIndex,endIndex,weekDate){
   h+=`<tr><th rowspan="2">ژ</th><th rowspan="2">ناوی فەرمانبەر</th>`;
   for(let i=0;i<5;i++){
     const d=new Date(weekDate); d.setDate(d.getDate()+i);
-    h+=`<th colspan="2"><span class="date-display"><span>${d.getDate()}</span>/<span>${d.getMonth()+1}</span>/<span>${d.getFullYear()}</span></span><br><span class="day-name">${DAYS[i]}</span></th>`;
+    h+=`<th colspan="2"><span class="date-display"><span>${nd(d.getDate())}</span>/<span>${nd(d.getMonth()+1)}</span>/<span>${nd(d.getFullYear())}</span></span><br><span class="day-name">${DAYS[i]}</span></th>`;
   }
   h+=`</tr><tr>`+`<th>هاتن</th><th>ڕۆیشتن</th>`.repeat(5)+`</tr></thead><tbody>`;
   for(let i=startIndex;i<endIndex&&i<names.length;i++){
     const e=names[i];
     const badge=e.empNo?` <span class="empno no-print">#${esc(e.empNo)}</span>`:'';
-    h+=`<tr><td>${i+1}</td><td class="namecell"><span class="name-text" onclick="editEmployee(${e.id})">${esc(e.name)}</span>${badge}</td>`+`<td></td><td></td>`.repeat(5)+`</tr>`;
+    h+=`<tr><td>${nd(i+1)}</td><td class="namecell"><span class="name-text" onclick="editEmployee(${e.id})">${esc(e.name)}</span>${badge}</td>`+`<td></td><td></td>`.repeat(5)+`</tr>`;
   }
   h+=`</tbody></table>`;
   return h;
@@ -3118,7 +3168,7 @@ if(app){ new MutationObserver(()=>{ clearTimeout(fitPages.t); fitPages.t=setTime
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const ar=n=>{ const t=String(n); return (SH.cfg&&SH.cfg.digits==='en')?t:t.replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]); };   // جۆری ژمارە لە ڕێکخستنەوە (بنەڕەت: کوردی)
 const CAT_ORDER=['permanent','contract','service'];
 const arCmp=(a,b)=>String(a).localeCompare(String(b),'ar');
 const keyOf=(eid,wd)=>eid+'|'+wd;
@@ -3166,6 +3216,7 @@ const isLinked=r=>r.employeeId!=null && !r.manual && !r.orphan;
 async function loadConfig(){
   const r=await API.get('/sheet/config');
   SH.cfg=r.config; SH.defaults=r.defaults||{}; SH.titleDefaults=r.titleDefaults||{}; SH.uni=r.uniName; SH.inst=r.instName; SH.canEdit=!!r.canEdit;
+  window.sheetDigitsVal=SH.cfg.digits==='en'?'en':'ar';
   if(SH.day!=null && SH.day!=='week' && !SH.cfg.days.includes(SH.day)) SH.day=SH.cfg.days[0];
 }
 function chooseMode(){ if(SH.day!=='week') SH.mode=dayRows(SH.day).length?'sheet':'pick'; }
@@ -3546,7 +3597,8 @@ function openCfg(){
     <h5>تێکستی خشتە</h5>
     <div class="g">${TXT_FIELDS.map(([k,l])=>`<label class="f">${l}<input type="text" data-k="${k}" value="${esc(c.texts[k])}" maxlength="120"></label>`).join('')}</div>
     <h5>چاپ و شێوە</h5>
-    <div class="g"><label class="f">ژمارەی ڕیز لە هەر لاپەڕەیەک (٦ تا ١٤)<input type="number" id="cfg-rows" min="6" max="14" value="${c.rowsPerPage}"></label></div>
+    <div class="g"><label class="f">ژمارەی ڕیز لە هەر لاپەڕەیەک (٦ تا ١٤)<input type="number" id="cfg-rows" min="6" max="14" value="${c.rowsPerPage}"></label>
+      <label class="f">جۆری ژمارەکان لە خشتەکەدا<select id="cfg-digits"><option value="ar"${c.digits==='en'?'':' selected'}>کوردی (١٢٣)</option><option value="en"${c.digits==='en'?' selected':''}>ئینگلیزی (123)</option></select></label></div>
     <div style="margin-top:10px"><div class="sh-hint" style="margin-bottom:6px">ڕۆژەکانی کار کە لە خشتەکەدا دەردەکەون:</div>
       <div class="days">${[0,1,2,3,4,5,6].map(d=>`<label><input type="checkbox" class="cfg-day" value="${d}" ${c.days.includes(d)?'checked':''}> ${esc(WDAYS[d])}</label>`).join('')}</div></div>
     <div style="margin-top:12px"><label style="display:flex;gap:8px;align-items:center;font-weight:700;font-size:13px"><input type="checkbox" id="cfg-bld" ${c.showBuilding?'checked':''}> وێنەی بینای زانکۆ لە سەرەوەی خشتەکە نیشان بدە</label></div>
@@ -3576,14 +3628,14 @@ function openCfg(){
     const days=[...document.querySelectorAll('#sh-cfgbox .cfg-day:checked')].map(i=>+i.value);
     if(!days.length) return toast('لانیکەم یەک ڕۆژ هەڵبژێرە.','error');
     const titles={}; document.querySelectorAll('#sh-cfgbox input[data-tc]').forEach(i=>{ titles[i.dataset.tc]=i.value; });
-    const body={texts,titles,days,rowsPerPage:+$('cfg-rows').value||10,showBuilding:$('cfg-bld').checked};
+    const body={texts,titles,days,rowsPerPage:+$('cfg-rows').value||10,showBuilding:$('cfg-bld').checked,digits:$('cfg-digits').value};
     if(pendingLogo!==undefined) body.logo=pendingLogo;
     if(currentUser&&currentUser.isSuper){ body.uniName=$('cfg-uni').value.trim(); body.instName=$('cfg-inst').value.trim(); }
     try{
       const r=await API.put('/sheet/config',body);
-      if(!r.config||!r.config.titles){ if(typeof staleServerWarn==='function') staleServerWarn(true); return toast('ناونیشانەکان پاشەکەوت نەکران: server.js ی سەر سێرڤەر کۆنە. server.js ی ٣.٤.٠ دابنێ و Deploy بکە.','error'); }
+      if(!r.config||!r.config.titles||r.config.digits!==body.digits){ if(typeof staleServerWarn==='function') staleServerWarn(true); return toast('ڕێکخستنەکان پاشەکەوت نەکران: server.js ی سەر سێرڤەر کۆنە. server.js ی نوێ دابنێ و Deploy بکە.','error'); }
       const namesChanged=(r.uniName!==SH.uni||r.instName!==SH.inst);
-      SH.cfg=r.config; if(r.titleDefaults) SH.titleDefaults=r.titleDefaults; SH.uni=r.uniName; SH.inst=r.instName;
+      SH.cfg=r.config; if(r.titleDefaults) SH.titleDefaults=r.titleDefaults; SH.uni=r.uniName; SH.inst=r.instName; window.sheetDigitsVal=SH.cfg.digits==='en'?'en':'ar'; try{ syncDigitsUI(); }catch(e){}
       if(namesChanged){ uniName=r.uniName; instName=r.instName; try{ applyBranding(); }catch(e){} try{ generateSystem(); }catch(e){} }
       if(SH.day!=='week' && !SH.cfg.days.includes(SH.day)) SH.day=SH.cfg.days[0];
       close(); toast('ڕێکخستنەکان پاشەکەوتکران.','success'); chooseMode(); render();

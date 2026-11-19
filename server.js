@@ -67,7 +67,8 @@ function adminToClient(row) {
   return {
     username: row.username, password: row.password, isSuper: row.issuper,
     allowAdd: row.allowadd, allowDelete: row.allowdelete, allowEdit: row.allowedit, allowPdf: row.allowpdf,
-    allowProfile: !!row.allowprofile, allowScan: !!row.allowscan, allowReport: !!row.allowreport
+    allowProfile: !!row.allowprofile, allowScan: !!row.allowscan, allowReport: !!row.allowreport,
+    allowSheetView: !!row.allowsheetview, allowSheetEdit: !!row.allowsheetedit
   };
 }
 async function getAdmin(username) { const r = await q('SELECT * FROM admins WHERE username=$1', [username]); return adminToClient(r[0]); }
@@ -175,6 +176,24 @@ async function ensureSchema() {
     last_seen TIMESTAMPTZ DEFAULT now()
   )`);
   await q(`CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(username)`);
+  // خشتەی دەوامی کارمەندان (v3.2) — خشتەی هەفتانەی دیاریکراو، بێ بەروار.
+  // بە ئەنقەست FOREIGN KEY نییە: گەڕاندنەوەی باکئەپ هەموو فەرمانبەران دەسڕێتەوە و دووبارە دەیانخاتەوە، نابێت خشتەی دەوام لەگەڵیان بسڕێتەوە.
+  await q(`ALTER TABLE admins ADD COLUMN IF NOT EXISTS allowsheetview BOOLEAN NOT NULL DEFAULT FALSE`);
+  await q(`ALTER TABLE admins ADD COLUMN IF NOT EXISTS allowsheetedit BOOLEAN NOT NULL DEFAULT FALSE`);
+  await q(`CREATE TABLE IF NOT EXISTS sheet_rows (
+    id SERIAL PRIMARY KEY,
+    category TEXT NOT NULL,
+    weekday SMALLINT NOT NULL,
+    employee_id INTEGER,
+    name TEXT NOT NULL DEFAULT '',
+    snap TEXT NOT NULL DEFAULT '',
+    morning BOOLEAN NOT NULL DEFAULT FALSE,
+    evening BOOLEAN NOT NULL DEFAULT FALSE,
+    note TEXT NOT NULL DEFAULT '',
+    updated_at TIMESTAMPTZ DEFAULT now()
+  )`);
+  await q(`CREATE UNIQUE INDEX IF NOT EXISTS uq_sheet_emp_day ON sheet_rows(employee_id, weekday) WHERE employee_id IS NOT NULL`);
+  await q(`CREATE INDEX IF NOT EXISTS idx_sheet_cat ON sheet_rows(category)`);
 }
 async function logAction(user, action, details){
   try{ await q('INSERT INTO audit_log (admin_user,action,details) VALUES ($1,$2,$3)', [user||'?', action||'', String(details||'').slice(0,300)]); }catch(e){}
@@ -538,8 +557,8 @@ app.post('/api/admins', h(async (req, res) => {
   const un = String(b.username || '').trim(), pw = String(b.password || '').trim();
   if (!un || !pw) return res.status(400).json({ error: 'بەکارهێنەر و پاسوۆرد پێویستە.' });
   if (await getAdmin(un)) return res.status(409).json({ error: 'ئەم بەکارهێنەرە پێشتر هەیە.' });
-  await q('INSERT INTO admins (username,password,issuper,allowadd,allowdelete,allowedit,allowpdf,allowprofile,allowscan,allowreport) VALUES ($1,$2,FALSE,$3,$4,$5,$6,$7,$8,$9)',
-    [un, pw, !!b.allowAdd, !!b.allowDelete, !!b.allowEdit, !!b.allowPdf, !!b.allowProfile, !!b.allowScan, !!b.allowReport]);
+  await q('INSERT INTO admins (username,password,issuper,allowadd,allowdelete,allowedit,allowpdf,allowprofile,allowscan,allowreport,allowsheetview,allowsheetedit) VALUES ($1,$2,FALSE,$3,$4,$5,$6,$7,$8,$9,$10,$11)',
+    [un, pw, !!b.allowAdd, !!b.allowDelete, !!b.allowEdit, !!b.allowPdf, !!b.allowProfile, !!b.allowScan, !!b.allowReport, !!b.allowSheetView, !!b.allowSheetEdit]);
   await logAction(u.username,'زیادکردنی ئادمین', un);
   res.json({ ok: true });
 }));
@@ -551,7 +570,7 @@ app.put('/api/admins/:username', h(async (req, res) => {
   if (target.isSuper && target.username === 'MKA95' && 'password' in b)
     return res.status(403).json({ error: 'ناتوانرێت پاسوۆردی سەرەکی سەرەکی بگۆڕدرێت لێرەوە.' });
   if ('password' in b && !String(b.password).trim()) return res.status(400).json({ error: 'پاسوۆرد نابێت بەتاڵ بێت.' });
-  const map = { password: 'password', allowAdd: 'allowadd', allowDelete: 'allowdelete', allowEdit: 'allowedit', allowPdf: 'allowpdf', allowProfile: 'allowprofile', allowScan: 'allowscan', allowReport: 'allowreport' };
+  const map = { password: 'password', allowAdd: 'allowadd', allowDelete: 'allowdelete', allowEdit: 'allowedit', allowPdf: 'allowpdf', allowProfile: 'allowprofile', allowScan: 'allowscan', allowReport: 'allowreport', allowSheetView: 'allowsheetview', allowSheetEdit: 'allowsheetedit' };
   const sets = [], vals = []; let i = 1;
   for (const k of Object.keys(map)) {
     if (k in b) {
@@ -574,8 +593,178 @@ app.delete('/api/admins/:username', h(async (req, res) => {
   res.json({ ok: true });
 }));
 
+/* ------------------------------ خشتەی دەوامی کارمەندان (v3.2) ------------------------------
+   خشتەی هەفتانەی دیاریکراو (بێ بەروار): بۆ هەر (فەرمانبەر × ڕۆژی هەفتە) ڕیزێک هەیە کە بەیانی/ئێوارەی تێدایە.
+   ڕۆژی هەفتە: ٠=شەممە ... ٦=هەینی (هەمان WDAYS ی فرۆنتئێند و workdays ی پرۆفایل).
+   ئەم خشتەیە لە لیستی سەرەکی جیایە: زیادکردن/لابردن/گۆڕینی ناو لێرە هیچ کاریگەرییەکی نییە لەسەر خشتەی employees.
+   ڕیزی فەرمانبەری ڕاستەقینە بە employee_id ەوە بەستراوە (نەک بە ناو/بەش)، بۆیە ئەگەر فەرمانبەر لە گرێبەستەوە
+   بگوازرێتەوە بۆ هەمیشەیی، ڕۆژ و شەفتەکانی خۆکار لەگەڵی دەگوازرێنەوە. ناوی دەستی (employee_id=NULL) بەشی خۆی هەیە. */
+const SHEET_CATS = ['contract', 'permanent', 'service'];
+const SHEET_TEXT_DEFAULTS = {
+  title: 'خشتەی دەوامی کارمەندان', dayLbl: 'ڕۆژ:',
+  hNum: 'ژمارە', hName: 'ناوی کارمەند', hM: 'بەیانی', hE: 'ئێوارە', hNote: 'تێبینی',
+  fLead: 'کۆی کارمەندانی دەوامدار', fM: 'ژمارەی بەیانی', fE: 'ژمارەی ئێوارە', fB: 'ژمارەی هەردوو کات',
+  pageLbl: 'لاپەڕە', pageOf: 'لە', contLbl: 'بەردەوام دەبێت لە لاپەڕەی دواتر'
+};
+const sheetDefaultConfig = () => ({ texts: Object.assign({}, SHEET_TEXT_DEFAULTS), days: [1, 2, 3, 4, 5], rowsPerPage: 10, showBuilding: true, logo: '' });
+// پاککردنەوە + گونجاندنی ڕێکخستنەکان (هەم بۆ PUT هەم بۆ گەڕاندنەوەی باکئەپ)
+function cleanSheetConfig(input, cur) {
+  const out = { texts: Object.assign({}, cur.texts), days: cur.days.slice(), rowsPerPage: cur.rowsPerPage, showBuilding: cur.showBuilding, logo: cur.logo };
+  const b = input && typeof input === 'object' ? input : {};
+  if (b.texts && typeof b.texts === 'object')
+    for (const k of Object.keys(SHEET_TEXT_DEFAULTS)) if (typeof b.texts[k] === 'string') out.texts[k] = b.texts[k].trim().slice(0, 120);
+  if (Array.isArray(b.days)) {
+    const d = [...new Set(b.days.map(Number).filter(x => Number.isInteger(x) && x >= 0 && x <= 6))].sort((x, y) => x - y);
+    if (d.length) out.days = d;
+  }
+  if (b.rowsPerPage != null) { const n = parseInt(b.rowsPerPage, 10); if (Number.isInteger(n)) out.rowsPerPage = Math.min(14, Math.max(6, n)); }
+  if (typeof b.showBuilding === 'boolean') out.showBuilding = b.showBuilding;
+  if (typeof b.logo === 'string') {
+    if (b.logo === '') out.logo = '';
+    else if (b.logo.length <= 900000 && /^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/.test(b.logo)) out.logo = b.logo;
+  }
+  return out;
+}
+async function getSheetConfig() {
+  const rows = await q("SELECT value FROM settings WHERE key='sheet_config'");
+  let stored = {}; try { stored = rows.length ? JSON.parse(rows[0].value) : {}; } catch (e) {}
+  return cleanSheetConfig(stored, sheetDefaultConfig());
+}
+const sheetCanView = u => !!(u && (u.isSuper || u.allowSheetView || u.allowSheetEdit));
+const sheetCanEdit = u => !!(u && (u.isSuper || u.allowSheetEdit));
+async function requireSheet(req, res, edit) {
+  const u = await requireAuth(req, res); if (!u) return null;
+  if (!(edit ? sheetCanEdit(u) : sheetCanView(u))) { res.status(403).json({ error: 'دەسەڵاتی خشتەی دەوامت نییە.' }); return null; }
+  return u;
+}
+const SHEET_USER_ERR = msg => Object.assign(new Error(msg), { userMessage: msg });
+app.get('/api/sheet/config', h(async (req, res) => {
+  const u = await requireSheet(req, res, false); if (!u) return;
+  const s = await getSettings(false);
+  res.json({ config: await getSheetConfig(), defaults: SHEET_TEXT_DEFAULTS, uniName: s.uniName, instName: s.instName, canEdit: sheetCanEdit(u) });
+}));
+app.put('/api/sheet/config', h(async (req, res) => {
+  const u = await requireSheet(req, res, true); if (!u) return;
+  const b = req.body || {};
+  const s = await getSettings(false);
+  // ناوی زانکۆ/پەیمانگا هەمان ڕێکخستنی سەرەکی پرۆگرامە (لە هەموو شوێنێک دەگۆڕێت) — وەک پێشوو تەنها بەڕێوەبەری سەرەکی
+  const uni = b.uniName != null ? String(b.uniName).trim() : s.uniName, inst = b.instName != null ? String(b.instName).trim() : s.instName;
+  if ((uni !== s.uniName || inst !== s.instName)) {
+    if (!u.isSuper) return res.status(403).json({ error: 'تەنها بەڕێوەبەری سەرەکی دەتوانێت ناوی زانکۆ و پەیمانگا بگۆڕێت.' });
+    if (!uni || !inst) return res.status(400).json({ error: 'ناوی زانکۆ و پەیمانگا نابێت بەتاڵ بێت.' });
+    await setSetting('uniName', uni); await setSetting('instName', inst);
+  }
+  const cfg = cleanSheetConfig(b, await getSheetConfig());
+  await setSetting('sheet_config', JSON.stringify(cfg));
+  await logAction(u.username, 'خشتەی دەوام: ڕێکخستن نوێکرایەوە', '');
+  const s2 = await getSettings(false);
+  res.json({ config: cfg, defaults: SHEET_TEXT_DEFAULTS, uniName: s2.uniName, instName: s2.instName, canEdit: true });
+}));
+// داتای یەک بەش: فەرمانبەرەکانی ئەو بەشە + هەموو ڕیزەکانی خشتەی دەوامی ئەو بەشە
+app.get('/api/sheet/data', h(async (req, res) => {
+  const u = await requireSheet(req, res, false); if (!u) return;
+  const cat = String(req.query.category || '');
+  if (!SHEET_CATS.includes(cat)) return res.status(400).json({ error: 'بەشی هەڵە.' });
+  // کۆپییەی ناو (snap) ڕێک دەخرێتەوە: بۆ ئەو کاتەی فەرمانبەرێک لە لیستی سەرەکی دەسڕێتەوە، ناوەکەی لە خشتەکەدا بمێنێت
+  await q('UPDATE sheet_rows r SET snap=e.name FROM employees e WHERE r.employee_id=e.id AND e.category=$1 AND r.snap<>e.name', [cat]);
+  const employees = await q('SELECT id,name,workdays,empid FROM employees WHERE category=$1 ORDER BY name', [cat]);
+  const rows = (await q(`SELECT r.id, r.employee_id, r.weekday, r.morning, r.evening, r.note, r.name AS name_ov, r.snap, e.id AS eid, e.name AS ename
+      FROM sheet_rows r LEFT JOIN employees e ON e.id = r.employee_id
+      WHERE (e.id IS NOT NULL AND e.category=$1) OR (e.id IS NULL AND r.category=$1) ORDER BY r.id`, [cat])).map(r => ({
+    id: r.id, employeeId: r.employee_id, weekday: r.weekday, morning: r.morning, evening: r.evening, note: r.note,
+    name: r.name_ov || r.ename || r.snap, realName: r.ename || r.snap, renamed: !!r.name_ov,
+    manual: r.employee_id == null, orphan: r.employee_id != null && r.eid == null
+  }));
+  res.json({ category: cat, employees, rows });
+}));
+// دیاریکردن/لابردنی چەند فەرمانبەرێکی ڕاستەقینە لە ڕۆژێکدا (upsert): {items:[{employeeId, weekday, morning?, evening?, note?, remove?}]}
+app.post('/api/sheet/rows', h(async (req, res) => {
+  const u = await requireSheet(req, res, true); if (!u) return;
+  const items = Array.isArray((req.body || {}).items) ? req.body.items : [];
+  if (!items.length || items.length > 600) return res.status(400).json({ error: 'داواکارییەکە دروست نییە.' });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const ids = [...new Set(items.map(i => parseInt(i && i.employeeId, 10)).filter(Number.isInteger))];
+    const emps = ids.length ? (await client.query('SELECT id,name,category FROM employees WHERE id = ANY($1::int[])', [ids])).rows : [];
+    const empMap = new Map(emps.map(e => [e.id, e]));
+    const out = [];
+    for (const it of items) {
+      const eid = parseInt(it && it.employeeId, 10), wd = parseInt(it && it.weekday, 10);
+      if (!empMap.has(eid)) throw SHEET_USER_ERR('فەرمانبەر نەدۆزرایەوە.');
+      if (!(wd >= 0 && wd <= 6)) throw SHEET_USER_ERR('ڕۆژی هەفتە هەڵەیە.');
+      if (it.remove) { await client.query('DELETE FROM sheet_rows WHERE employee_id=$1 AND weekday=$2', [eid, wd]); out.push({ employeeId: eid, weekday: wd, removed: true }); continue; }
+      const e = empMap.get(eid);
+      const hasM = typeof it.morning === 'boolean', hasE = typeof it.evening === 'boolean', hasN = typeof it.note === 'string';
+      const r = await client.query(`INSERT INTO sheet_rows (category,weekday,employee_id,name,snap,morning,evening,note)
+          VALUES ($1,$2,$3,COALESCE((SELECT name FROM sheet_rows WHERE employee_id=$3 AND name<>'' LIMIT 1),''),$4,$5,$6,$7)
+          ON CONFLICT (employee_id, weekday) WHERE employee_id IS NOT NULL DO UPDATE SET
+            morning = CASE WHEN $8::boolean THEN EXCLUDED.morning ELSE sheet_rows.morning END,
+            evening = CASE WHEN $9::boolean THEN EXCLUDED.evening ELSE sheet_rows.evening END,
+            note = CASE WHEN $10::boolean THEN EXCLUDED.note ELSE sheet_rows.note END,
+            category = EXCLUDED.category, snap = EXCLUDED.snap, updated_at = now()
+          RETURNING id, morning, evening, note`,
+        [e.category, wd, eid, e.name, hasM ? it.morning : false, hasE ? it.evening : false, hasN ? it.note.slice(0, 300) : '', hasM, hasE, hasN]);
+      out.push({ id: r.rows[0].id, employeeId: eid, weekday: wd, morning: r.rows[0].morning, evening: r.rows[0].evening, note: r.rows[0].note });
+    }
+    await client.query('COMMIT');
+    res.json({ rows: out });
+  } catch (e) {
+    try { await client.query('ROLLBACK'); } catch (e2) {}
+    if (e.userMessage) return res.status(400).json({ error: e.userMessage });
+    console.error(e); res.status(500).json({ error: 'هەڵەی سێرڤەر.' });
+  } finally { client.release(); }
+}));
+// ناوی دەستی (کەسێک کە لە لیستی سەرەکیدا نییە) — تەنها لە خشتەی دەوامدا دەمێنێتەوە
+app.post('/api/sheet/manual', h(async (req, res) => {
+  const u = await requireSheet(req, res, true); if (!u) return;
+  const b = req.body || {};
+  const name = String(b.name || '').trim().slice(0, 120), wd = parseInt(b.weekday, 10);
+  if (!SHEET_CATS.includes(b.category)) return res.status(400).json({ error: 'بەشی هەڵە.' });
+  if (!name) return res.status(400).json({ error: 'ناو پێویستە.' });
+  if (!(wd >= 0 && wd <= 6)) return res.status(400).json({ error: 'ڕۆژی هەفتە هەڵەیە.' });
+  const r = await q('INSERT INTO sheet_rows (category,weekday,employee_id,name,snap,morning,evening,note) VALUES ($1,$2,NULL,$3,$3,$4,$5,$6) RETURNING id',
+    [b.category, wd, name, b.morning === true, b.evening === true, String(b.note || '').slice(0, 300)]);
+  res.json({ id: r[0].id });
+}));
+// دەستکاری ڕیزێک بە id: تێبینی، شەفت، ناو (تەنها لە خشتەکەدا)، گواستنەوەی ناوی دەستی بۆ بەشێکی تر
+app.put('/api/sheet/row/:id', h(async (req, res) => {
+  const u = await requireSheet(req, res, true); if (!u) return;
+  const id = parseInt(req.params.id, 10);
+  const rows = Number.isInteger(id) ? await q('SELECT * FROM sheet_rows WHERE id=$1', [id]) : [];
+  if (!rows.length) return res.status(404).json({ error: 'نەدۆزرایەوە.' });
+  const row = rows[0], b = req.body || {};
+  const sets = [], vals = []; let i = 1;
+  if ('note' in b) { sets.push('note=$' + i++); vals.push(String(b.note || '').slice(0, 300)); }
+  if ('morning' in b) { sets.push('morning=$' + i++); vals.push(b.morning === true); }
+  if ('evening' in b) { sets.push('evening=$' + i++); vals.push(b.evening === true); }
+  if ('category' in b) {
+    if (row.employee_id != null) return res.status(400).json({ error: 'بەشی فەرمانبەری ڕاستەقینە لە لیستی سەرەکییەوە دیاری دەکرێت.' });
+    if (!SHEET_CATS.includes(b.category)) return res.status(400).json({ error: 'بەشی هەڵە.' });
+    sets.push('category=$' + i++); vals.push(b.category);
+  }
+  if ('name' in b) {
+    const nm = String(b.name || '').trim().slice(0, 120);
+    if (row.employee_id == null) {
+      if (!nm) return res.status(400).json({ error: 'ناو پێویستە.' });
+      sets.push('name=$' + i++); vals.push(nm);
+    } else {
+      // ناوی گۆڕدراو تەنها لەسەر خشتەی دەوامە، بۆ هەموو ڕۆژەکانی ئەو فەرمانبەرە؛ بەتاڵ = گەڕانەوە بۆ ناوی لیستی سەرەکی
+      await q('UPDATE sheet_rows SET name=$1, updated_at=now() WHERE employee_id=$2', [nm, row.employee_id]);
+    }
+  }
+  if (sets.length) { vals.push(id); await q('UPDATE sheet_rows SET ' + sets.join(',') + ', updated_at=now() WHERE id=$' + i, vals); }
+  res.json({ ok: true });
+}));
+app.delete('/api/sheet/row/:id', h(async (req, res) => {
+  const u = await requireSheet(req, res, true); if (!u) return;
+  const id = parseInt(req.params.id, 10);
+  if (Number.isInteger(id)) await q('DELETE FROM sheet_rows WHERE id=$1', [id]);
+  res.json({ ok: true });
+}));
+
 /* ------------------------------ باکئەپ / گەڕاندنەوە ------------------------------
-   وەشانی ٤: admins + employees + settings + attendance + leaves.
+   وەشانی ٤: admins + employees + settings + attendance + leaves (+ sheetRows/sheetConfig: خشتەی دەوام، v3.2).
    (مێژووی چالاکی audit_log ناخرێتە باکئەپ و ناگەڕێنرێتەوە — تۆمارێکی بەردەوامە.)
    باکئەپی کۆنی وەشانی ٣ هێشتا دەگەڕێتەوە؛ attendance/leaves دەست لێ نادرێن ئەگەر لە فایلەکەدا نەبن. */
 const EMP_COLS = 'category,name,empno,dept,specialty,mobile,birthdate,workdays,empid,bloodtype,photo,card_issue,card_expiry,name_en,dept_en,specialty_en';
@@ -588,7 +777,9 @@ app.get('/api/backup', h(async (req, res) => {
     employees: await q('SELECT id,category,name,empno AS "empNo",dept,specialty,mobile,birthdate,workdays,empid,bloodtype,photo,card_issue AS "cardIssue",card_expiry AS "cardExpiry",name_en AS "nameEn",dept_en AS "deptEn",specialty_en AS "specialtyEn" FROM employees'),
     settings: await getSettings(true),
     attendance: await q('SELECT id,employee_id,empid,name,day,time,type,shift,by_admin,created_at FROM attendance ORDER BY id'),
-    leaves: await q('SELECT id,employee_id,empid,name,type,from_day,to_day,from_time,to_time,note,by_admin,created_at FROM leaves ORDER BY id')
+    leaves: await q('SELECT id,employee_id,empid,name,type,from_day,to_day,from_time,to_time,note,by_admin,created_at FROM leaves ORDER BY id'),
+    sheetRows: await q('SELECT id,category,weekday,employee_id,name,snap,morning,evening,note FROM sheet_rows ORDER BY id'),
+    sheetConfig: await getSheetConfig()
   };
   await setSetting('lastBackup', iraqNow().day);
   await logAction(u.username, 'دروستکردنی باکئەپ', '');
@@ -609,8 +800,8 @@ app.post('/api/restore', h(async (req, res) => {
         throw Object.assign(new Error('no super admin'), { userMessage: 'فایلی باکئەپ هیچ بەڕێوەبەرێکی سەرەکی تێدا نییە — گەڕاندنەوە ڕاگیرا.' });
       await client.query('DELETE FROM admins');
       for (const a of data.admins) {
-        await client.query('INSERT INTO admins (username,password,issuper,allowadd,allowdelete,allowedit,allowpdf,allowprofile,allowscan,allowreport) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
-          [a.username, a.password, !!a.isSuper, !!a.allowAdd, !!a.allowDelete, !!a.allowEdit, !!a.allowPdf, !!a.allowProfile, !!a.allowScan, !!a.allowReport]);
+        await client.query('INSERT INTO admins (username,password,issuper,allowadd,allowdelete,allowedit,allowpdf,allowprofile,allowscan,allowreport,allowsheetview,allowsheetedit) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
+          [a.username, a.password, !!a.isSuper, !!a.allowAdd, !!a.allowDelete, !!a.allowEdit, !!a.allowPdf, !!a.allowProfile, !!a.allowScan, !!a.allowReport, !!a.allowSheetView, !!a.allowSheetEdit]);
       }
     }
     const idMap = new Map();   // ID ی کۆنی فەرمانبەر -> ID ی نوێ
@@ -645,6 +836,25 @@ app.post('/api/restore', h(async (req, res) => {
           from_day: r.from_day || r.fromDay || '', to_day: r.to_day || r.toDay || '', from_time: r.from_time || r.fromTime || '', to_time: r.to_time || r.toTime || '',
           note: r.note || '', by_admin: r.by_admin || '', created_at: r.created_at || null })));
     }
+    // خشتەی دەوام: ئەگەر فایلەکە هەیبێت جێگای دەگرێتەوە، ئەگەر نا (باکئەپی کۆن) دەست لێ نادرێت
+    if (Array.isArray(data.sheetRows)) {
+      await client.query('DELETE FROM sheet_rows');
+      const seen = new Set(), srows = [];
+      for (const r of data.sheetRows) {
+        if (!r || !SHEET_CATS.includes(r.category)) continue;
+        const wd = parseInt(r.weekday, 10); if (!(wd >= 0 && wd <= 6)) continue;
+        const eid = r.employee_id == null ? null : mapId(r.employee_id);
+        if (eid != null) { const k = eid + '|' + wd; if (seen.has(k)) continue; seen.add(k); }
+        srows.push({ category: r.category, weekday: wd, employee_id: eid, name: String(r.name || '').slice(0, 120), snap: String(r.snap || r.name || '').slice(0, 120),
+          morning: r.morning === true, evening: r.evening === true, note: String(r.note || '').slice(0, 300) });
+      }
+      await bulkInsert(client, `INSERT INTO sheet_rows (category,weekday,employee_id,name,snap,morning,evening,note)
+        SELECT category,weekday,employee_id,name,snap,morning,evening,note
+        FROM jsonb_to_recordset($1::jsonb) AS x(category text,weekday int,employee_id int,name text,snap text,morning boolean,evening boolean,note text)`, srows);
+    }
+    if (data.sheetConfig && typeof data.sheetConfig === 'object')
+      await client.query('INSERT INTO settings (key,value) VALUES ($1,$2) ON CONFLICT (key) DO UPDATE SET value=EXCLUDED.value',
+        ['sheet_config', JSON.stringify(cleanSheetConfig(data.sheetConfig, sheetDefaultConfig()))]);
     // فەرمانبەران گۆڕدران بەڵام فایلەکە attendance/leaves ی تێدا نییە (وەشانی ٣): بە empid دووبارە دەیانبەستینەوە
     if (Array.isArray(data.employees)) {
       if (!Array.isArray(data.attendance)) await client.query("UPDATE attendance a SET employee_id=e.id FROM employees e WHERE a.empid<>'' AND a.empid=e.empid");

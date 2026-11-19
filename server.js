@@ -17,7 +17,7 @@ const pool = new Pool({
   // Neon پێویستی بە SSL هەیە. بۆ داتابەیسی ناوخۆیی (تاقیکردنەوە) دەتوانیت DATABASE_SSL=false دابنێیت.
   ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false }
 });
-const SERVER_VERSION = '3.4.0';   // کڵاینت بەمە دەزانێت server.js نوێیە (ئەگەر نەبێت ئاگادارکردنەوە نیشان دەدات)
+const SERVER_VERSION = '3.5.0';   // کڵاینت بەمە دەزانێت server.js نوێیە (ئەگەر نەبێت ئاگادارکردنەوە نیشان دەدات)
 const app = express();
 app.set('trust proxy', 1);   // Render لە پشت proxy یەوەیە — بۆ زانینی IPی ڕاستەقینە (سنووری هەوڵی لۆگین)
 
@@ -50,6 +50,7 @@ const DEFAULT_CONTRACT = ["أحمد فائق عمر","أدريس نجم قادر
 const DEFAULT_PERMANENT = ["ئاسۆ عبێد علی","أبوبكر حمه تۆفیق","بێگەرد امجد محمد","بێگەرد محمد مصطفی","بەناز نجم الدین قادر","جوتیار رضا عزیز","خالد قادر رەشید","دەریا خالد طه","دیوان أبوبکر محمد","سنور مصدق قادر","صفیه عمر أحمد","عمر قادر عمر","فیصڵ کاکەرەش عمر","نەبەس محسین حسن","ژیان جلال محمدامین","هێدي صمد هیدایت","هۆشمەند نصرالدین أنور","هەنگاو اسعد رضا","هێمن علی حاجی","رزگار نجم صاڵح"];
 const DEFAULT_SERVICE = ["رابیعه کانەبی صالح","هەردی عبدالله صدیق"];
 const DEFAULT_SETTINGS = {
+  digitsMain: 'en',   // ژمارەکانی خشتەی هاتن و ڕۆشتن: en = 1 2 3 (وەک پێشوو) · ar = ١ ٢ ٣
   title: 'زانکۆی پۆلیتەکنیکی هەولێر - پەیمانگای تەکنیکی تەق تەق - تۆماری ئامادەبوونی فەرمانبەران',
   uniName: 'زانکۆی پۆلیتەکنیکی هەولێر',
   instName: 'پەیمانگای تەکنیکی تەق تەق',
@@ -92,7 +93,8 @@ async function getSettings(withSecrets) {
            coverNote: (o.coverNote != null ? o.coverNote : DEFAULT_SETTINGS.coverNote),
            lastBackup: (o.lastBackup || ''),
            uniNameEn: (o.uniNameEn || DEFAULT_SETTINGS.uniNameEn),
-           instNameEn: (o.instNameEn || DEFAULT_SETTINGS.instNameEn) };
+           instNameEn: (o.instNameEn || DEFAULT_SETTINGS.instNameEn),
+           digitsMain: o.digitsMain === 'ar' ? 'ar' : 'en' };
   if (withSecrets) out.imgbbKey = (o.imgbbKey || '');
   return out;
 }
@@ -400,6 +402,7 @@ app.get('/api/me', h(async (req, res) => {
 /* ------------------------------ ڕێکخستنەکان ------------------------------ */
 // پێویستی بە لۆگین نییە (پەڕەی لۆگین ناوی زانکۆ پێویستە)، بەڵام کلیلی ImgBB تەنها بۆ ئەوانەی دەسەڵاتیان هەیە دەگەڕێتەوە.
 app.get('/api/settings', h(async (req, res) => { const u = await currentUserFrom(req); res.json(await getSettings(canSeeSecrets(u))); }));
+const DIGITS_LABEL = { en: 'ئینگلیزی (123)', ar: 'کوردی (١٢٣)' };
 app.put('/api/settings', h(async (req, res) => {
   const u = await requireAuth(req, res); if (!u) return;
   const b = req.body || {};
@@ -416,6 +419,11 @@ app.put('/api/settings', h(async (req, res) => {
     await setSetting('title', b.title);
   }
   if ('showBadge' in b) await setSetting('showBadge', b.showBadge ? 'true' : 'false');
+  if ('digitsMain' in b) {
+    if (!u.isSuper) return res.status(403).json({ error: 'تەنها بەڕێوەبەری سەرەکی دەتوانێت جۆری ژمارەکان بگۆڕێت.' });
+    if (b.digitsMain !== 'en' && b.digitsMain !== 'ar') return res.status(400).json({ error: 'جۆری ژمارە نادروستە.' });
+    await setSetting('digitsMain', b.digitsMain);
+  }
   if ('coverTitle' in b || 'coverSubtitle' in b || 'coverNote' in b) {
     if (!u.isSuper) return res.status(403).json({ error: 'تەنها بەڕێوەبەری سەرەکی دەتوانێت تێکستی بەرگ بگۆڕێت.' });
     if ('coverTitle' in b) await setSetting('coverTitle', b.coverTitle);
@@ -429,7 +437,7 @@ app.put('/api/settings', h(async (req, res) => {
   const after = await getSettings(true);
   const SET_LABELS = [['title', 'ناونیشانی خشتەی هاتن و ڕۆشتن'], ['uniName', 'ناوی زانکۆ'], ['instName', 'ناوی پەیمانگا'], ['uniNameEn', 'ناوی زانکۆ (English)'],
     ['instNameEn', 'ناوی پەیمانگا (English)'], ['coverTitle', 'ناونیشانی بەرگ'], ['coverSubtitle', 'ژێرناونیشانی بەرگ'], ['coverNote', 'تێبینی بەرگ']];
-  const sd = diffLines(SET_LABELS.map(([k, l]) => [l, before[k], after[k]]).concat([['پیشاندانی نیشانەی بەش لەسەر خشتە', yn(before.showBadge), yn(after.showBadge)]]));
+  const sd = diffLines(SET_LABELS.map(([k, l]) => [l, before[k], after[k]]).concat([['پیشاندانی نیشانەی بەش لەسەر خشتە', yn(before.showBadge), yn(after.showBadge)], ['ژمارەکانی خشتەی هاتن و ڕۆشتن', DIGITS_LABEL[before.digitsMain], DIGITS_LABEL[after.digitsMain]]]));
   const keyLine = before.imgbbKey !== after.imgbbKey ? '\nکلیلی ImgBB: گۆڕدرا' : '';
   if (sd || keyLine) await logAction(u.username, 'گۆڕینی ڕێکخستنەکان', (sd + keyLine).trim(), 'edit');
   res.json(await getSettings(canSeeSecrets(u)));
@@ -773,13 +781,13 @@ const SHEET_TEXT_DEFAULTS = {
   fLead: 'کۆی کارمەندانی دەوامدار', fM: 'ژمارەی بەیانی', fE: 'ژمارەی ئێوارە', fB: 'ژمارەی هەردوو کات',
   pageLbl: 'لاپەڕە', pageOf: 'لە', contLbl: 'بەردەوام دەبێت لە لاپەڕەی دواتر'
 };
-const sheetDefaultConfig = () => ({ texts: Object.assign({}, SHEET_TEXT_DEFAULTS), titles: { contract: '', permanent: '', service: '' }, days: [1, 2, 3, 4, 5], rowsPerPage: 10, showBuilding: true, logo: '' });
+const sheetDefaultConfig = () => ({ texts: Object.assign({}, SHEET_TEXT_DEFAULTS), titles: { contract: '', permanent: '', service: '' }, days: [1, 2, 3, 4, 5], rowsPerPage: 10, showBuilding: true, logo: '', digits: 'ar' });
 const sheetTitleOf = (cfg, cat) => (cfg.titles && cfg.titles[cat]) || SHEET_TITLE_DEFAULTS[cat] || '';
 const SHEET_TXT_LABELS = { dayLbl: 'وشەی «ڕۆژ:»', hNum: 'سەرستوونی ژمارە', hName: 'سەرستوونی ناو', hM: 'سەرستوونی بەیانی', hE: 'سەرستوونی ئێوارە', hNote: 'سەرستوونی تێبینی',
   fLead: 'کۆی کارمەندانی دەوامدار', fM: 'ژمارەی بەیانی', fE: 'ژمارەی ئێوارە', fB: 'ژمارەی هەردوو کات', pageLbl: 'وشەی «لاپەڕە»', pageOf: 'وشەی «لە»', contLbl: 'تێکستی لاپەڕەی بەردەوام' };
 // پاککردنەوە + گونجاندنی ڕێکخستنەکان (هەم بۆ PUT هەم بۆ گەڕاندنەوەی باکئەپ)
 function cleanSheetConfig(input, cur) {
-  const out = { texts: Object.assign({}, cur.texts), titles: Object.assign({ contract: '', permanent: '', service: '' }, cur.titles), days: cur.days.slice(), rowsPerPage: cur.rowsPerPage, showBuilding: cur.showBuilding, logo: cur.logo };
+  const out = { texts: Object.assign({}, cur.texts), titles: Object.assign({ contract: '', permanent: '', service: '' }, cur.titles), days: cur.days.slice(), rowsPerPage: cur.rowsPerPage, showBuilding: cur.showBuilding, logo: cur.logo, digits: cur.digits === 'en' ? 'en' : 'ar' };
   const b = input && typeof input === 'object' ? input : {};
   if (b.texts && typeof b.texts === 'object')
     for (const k of Object.keys(SHEET_TEXT_DEFAULTS)) if (typeof b.texts[k] === 'string') out.texts[k] = b.texts[k].trim().slice(0, 120);
@@ -796,6 +804,7 @@ function cleanSheetConfig(input, cur) {
   }
   if (b.rowsPerPage != null) { const n = parseInt(b.rowsPerPage, 10); if (Number.isInteger(n)) out.rowsPerPage = Math.min(14, Math.max(6, n)); }
   if (typeof b.showBuilding === 'boolean') out.showBuilding = b.showBuilding;
+  if (b.digits === 'en' || b.digits === 'ar') out.digits = b.digits;
   if (typeof b.logo === 'string') {
     if (b.logo === '') out.logo = '';
     else if (b.logo.length <= 900000 && /^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/=]+$/.test(b.logo)) out.logo = b.logo;
@@ -847,6 +856,7 @@ app.put('/api/sheet/config', h(async (req, res) => {
   for (const k of Object.keys(SHEET_TXT_LABELS)) if (prevCfg.texts[k] !== cfg.texts[k]) cl.push(SHEET_TXT_LABELS[k] + ': ' + dash(prevCfg.texts[k]) + ' ← ' + dash(cfg.texts[k]));
   if (prevCfg.days.join() !== cfg.days.join()) cl.push('ڕۆژەکان: ' + prevCfg.days.map(d => WD_NAMES[d]).join('، ') + ' ← ' + cfg.days.map(d => WD_NAMES[d]).join('، '));
   if (prevCfg.rowsPerPage !== cfg.rowsPerPage) cl.push('ڕیز لە هەر لاپەڕەیەک: ' + prevCfg.rowsPerPage + ' ← ' + cfg.rowsPerPage);
+  if (prevCfg.digits !== cfg.digits) cl.push('ژمارەکانی خشتەی دەوام: ' + DIGITS_LABEL[prevCfg.digits] + ' ← ' + DIGITS_LABEL[cfg.digits]);
   if (prevCfg.showBuilding !== cfg.showBuilding) cl.push('وێنەی بینا: ' + yn(prevCfg.showBuilding) + ' ← ' + yn(cfg.showBuilding));
   if (prevCfg.logo !== cfg.logo) cl.push('لۆگۆ: ' + (cfg.logo ? 'گۆڕدرا' : 'گەڕایەوە بۆ لۆگۆی EPU'));
   if (uni !== s.uniName) cl.push('ناوی زانکۆ: ' + s.uniName + ' ← ' + uni);
@@ -1101,6 +1111,7 @@ app.post('/api/restore', h(async (req, res) => {
       if (s.uniName != null) await upsert('uniName', s.uniName);
       if (s.instName != null) await upsert('instName', s.instName);
       if (s.showBadge != null) await upsert('showBadge', s.showBadge ? 'true' : 'false');
+      if (s.digitsMain === 'en' || s.digitsMain === 'ar') await upsert('digitsMain', s.digitsMain);
       for (const k of ['coverTitle', 'coverSubtitle', 'coverNote', 'uniNameEn', 'instNameEn'])
         if (s[k] != null) await upsert(k, String(s[k]));
       if (typeof s.imgbbKey === 'string' && s.imgbbKey.trim()) await upsert('imgbbKey', s.imgbbKey.trim());

@@ -476,6 +476,239 @@ table.att td.namecell{white-space:nowrap}
   *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
 }
 </style>
+<!-- SHEET-CSS-START -->
+<style>
+/* ===================== خشتەی دەوامی کارمەندان (v3.2) — ڕووکار ===================== */
+#sheet-container .sh-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+#sheet-container .sh-top h3{margin:0}
+/* the app's fixed logo + ☰ button sit in the top corner: keep the title row clear of them */
+#sheet-container .sh-top{padding-inline-start:60px}
+@media(max-width:980px){ #sheet-container .sh-top{padding-inline-start:0;margin-top:44px} }
+.sh-status{font-size:12.5px;font-weight:700;color:var(--text-muted);display:inline-flex;align-items:center;gap:6px;min-height:20px}
+.sh-status.ok{color:var(--teal-dark)} .sh-status.saving{color:var(--gold-dark)} .sh-status.err{color:var(--danger-dark)}
+.sh-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.sh-lbl{font-size:12px;font-weight:800;color:var(--text-muted);min-width:46px}
+.sh-seg{display:flex;gap:6px;flex-wrap:wrap}
+.sh-chip{font-family:var(--font-ui);cursor:pointer;border:1.5px solid var(--border);background:var(--surface-2);color:var(--text);
+  padding:9px 16px;border-radius:999px;font-weight:800;font-size:13.5px;display:inline-flex;align-items:center;gap:8px;transition:.15s}
+.sh-chip:hover{border-color:var(--gold)}
+.sh-chip.active{background:linear-gradient(135deg,var(--navy),var(--navy-2));border-color:var(--navy);color:#fff;box-shadow:0 6px 14px rgba(11,31,58,.25)}
+.sh-chip .n{background:rgba(0,0,0,.08);border-radius:999px;font-size:11px;font-weight:800;padding:1px 8px;min-width:22px;text-align:center}
+.sh-chip.active .n{background:rgba(255,255,255,.2)}
+.sh-chip.day.active{background:linear-gradient(135deg,var(--gold),var(--gold-dark));border-color:var(--gold-dark);color:#22160a;box-shadow:0 6px 14px rgba(201,154,46,.35)}
+.sh-chip.day.active .n{background:rgba(0,0,0,.16)}
+.sh-chip.week{border-style:dashed}
+.sh-chip.week.active{border-style:solid;background:linear-gradient(135deg,#324a72,#22385a);border-color:#22385a;color:#fff;box-shadow:none}
+.sh-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sh-btn{font-family:var(--font-ui);cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text);
+  padding:9px 14px;border-radius:var(--radius-sm);font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+.sh-btn:hover{border-color:var(--gold);transform:translateY(-1px)}
+.sh-btn.on{background:var(--navy-2);color:#fff;border-color:var(--navy-2)}
+.sh-btn.pri{background:var(--navy);border-color:var(--navy);color:#fff}
+.sh-btn.gold{background:var(--gold);border-color:var(--gold-dark);color:#22160a}
+.sh-btn.danger{color:var(--danger-dark)}
+.sh-btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
+.sh-sep{flex:1}
+.sh-dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+.sh-dot.m{background:#1f56b5}.sh-dot.e{background:var(--gold)}
+.sh-search{font-family:var(--font-ui);padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);
+  font-size:13.5px;min-width:200px;flex:1;max-width:340px}
+.sh-search:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,154,46,.14)}
+.sh-panel{margin-top:14px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);overflow:hidden}
+.sh-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px;background:var(--surface-2);border-bottom:1px solid var(--border)}
+.sh-hint{font-size:12.5px;color:var(--text-muted);line-height:1.8}
+
+/* کارتەکانی کۆکراوە */
+.sh-sum{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.sh-sumc{border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:4px;
+  border-top:3px solid var(--navy-line)}
+.sh-sumc b{font-size:12.5px;font-weight:800;color:var(--text-muted)}
+.sh-sumc span{font-size:28px;font-weight:800;color:var(--text);line-height:1.2}
+.sh-sumc.m{border-top-color:#1f56b5} .sh-sumc.e{border-top-color:var(--gold)} .sh-sumc.t{border-top-color:var(--navy);background:linear-gradient(180deg,var(--surface),var(--surface-2))}
+.sh-sumc.t span{color:var(--navy-2)}
+[data-theme="dark"] .sh-sumc.t span{color:#cfe0ff}
+.sh-sumwrap.top .sh-sum{margin:0 0 12px}
+
+/* خشتە */
+.sh-tbl{width:100%;border-collapse:collapse}
+.sh-tbl th{background:var(--navy);color:#fff;font-size:13px;font-weight:800;padding:11px 8px;text-align:center;border-inline-start:1px solid rgba(255,255,255,.14);white-space:nowrap}
+.sh-tbl th:first-child{border-inline-start:0}
+.sh-tbl td{padding:7px 8px;border-top:1px solid var(--border);border-inline-start:1px solid var(--border);text-align:center;font-size:14px;vertical-align:middle}
+.sh-tbl td:first-child{border-inline-start:0}
+.sh-tbl tbody tr:nth-child(even) td{background:var(--surface-2)}
+.sh-tbl tbody tr:hover td{background:var(--gold-soft)}
+.sh-tbl td.nm{text-align:start;font-weight:700}
+.sh-tbl td.no{font-weight:800;color:var(--text-muted);width:48px}
+.sh-tbl td.sw{width:92px}
+.sh-tbl th.sw{width:92px}
+.sh-tbl td.act{width:84px;white-space:nowrap}
+.sh-tbl tr.sel td.nm{color:var(--navy-2)}
+[data-theme="dark"] .sh-tbl tr.sel td.nm{color:#cfe0ff}
+.sh-tag{display:inline-block;font-size:10.5px;font-weight:800;padding:1px 8px;border-radius:999px;margin-inline-start:6px;vertical-align:middle}
+.sh-tag.man{background:var(--gold-soft);color:var(--gold-dark);border:1px solid #e8d59a}
+.sh-tag.orp{background:#fdeeee;color:var(--danger-dark);border:1px solid #f7c9c6}
+.sh-tag.ren{background:#e8f6f1;color:var(--teal-dark);border:1px solid #9ad9c9}
+.sh-note{font-family:var(--font-ui);width:100%;min-width:120px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px}
+.sh-note:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,154,46,.14)}
+.sh-ic{font-family:var(--font-ui);cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);width:32px;height:32px;border-radius:8px;font-size:14px;transition:.15s}
+.sh-ic:hover{border-color:var(--gold);color:var(--text)} .sh-ic.danger:hover{border-color:var(--danger);color:var(--danger-dark)}
+.sh-empty{padding:34px 16px;text-align:center;color:var(--text-muted);font-size:14px;line-height:2}
+.sh-mv{font-family:var(--font-ui);font-size:12px;padding:5px 6px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text)}
+
+/* سویچە ئەنیمەیتەدارەکان: بەیانی شین، ئێوارە زێڕین */
+.sh-sw{position:relative;display:inline-block;width:46px;height:26px;flex:none;vertical-align:middle}
+.sh-sw input{position:absolute;inset:0;width:100%;height:100%;opacity:0;margin:0;cursor:pointer;z-index:2}
+.sh-sw .tr{position:absolute;inset:0;border-radius:999px;background:#c5d0e2;transition:background .18s;box-shadow:inset 0 1px 2px rgba(11,31,58,.22)}
+.sh-sw .tr::after{content:'';position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.32);transition:inset-inline-start .18s}
+.sh-sw input:checked + .tr{background:var(--sw)}
+.sh-sw input:checked + .tr::after{inset-inline-start:23px}
+.sh-sw.m{--sw:#1f56b5} .sh-sw.e{--sw:var(--gold)}
+.sh-sw input:focus-visible + .tr{outline:2px solid var(--navy-line);outline-offset:2px}
+.sh-sw input:disabled{cursor:not-allowed}
+.sh-sw input:disabled + .tr{opacity:.55}
+[data-theme="dark"] .sh-sw .tr{background:#3a4f73}
+.sh-sw.sm{width:36px;height:21px}
+.sh-sw.sm .tr::after{width:15px;height:15px;top:3px}
+.sh-sw.sm input:checked + .tr::after{inset-inline-start:18px}
+.sh-sw-l{display:none;font-size:11px;font-weight:800;color:var(--text-muted)}
+
+/* پێشاندانی «خشتە» وەک بەڵگەی فەرمی */
+.sh-paper{padding:16px 16px 4px}
+.sh-docbar{display:flex;align-items:center;justify-content:center;gap:16px;text-align:center;padding:6px 4px 14px;border-bottom:2px solid var(--gold);margin-bottom:12px}
+.sh-docbar img.lg{width:58px;height:58px;object-fit:contain}
+.sh-docbar .bd{width:120px;height:44px;object-fit:contain;opacity:.95}
+.sh-docbar .u{font-size:19px;font-weight:800;color:var(--navy-2);line-height:1.5}
+.sh-docbar .i{font-size:14px;font-weight:700;color:var(--gold-dark)}
+[data-theme="dark"] .sh-docbar .u{color:#e8eefb}
+.sh-title{display:flex;justify-content:center;margin:2px 0 10px}
+.sh-title span{background:var(--navy);color:#fff;padding:9px 38px;border-radius:10px;font-size:17px;font-weight:800;border:2px solid var(--gold)}
+.sh-dayp{display:flex;justify-content:center;margin-bottom:12px}
+.sh-dayp span{border:2px solid var(--gold);border-radius:999px;padding:4px 30px;font-weight:800;font-size:15px;background:var(--surface)}
+
+/* خشتەی هەموو هەفتە */
+.sh-wk{max-height:72vh;overflow:auto;border-top:1px solid var(--border)}
+.sh-wk table{border-collapse:separate;border-spacing:0;min-width:100%}
+.sh-wk th,.sh-wk td{border-bottom:1px solid var(--border);border-inline-start:1px solid var(--border);padding:6px 8px;text-align:center;font-size:13.5px;background:var(--surface)}
+.sh-wk thead th{position:sticky;top:0;z-index:3;background:var(--navy);color:#fff;font-weight:800;border-color:rgba(255,255,255,.14)}
+.sh-wk thead tr.r2 th{top:37px;background:var(--navy-2);font-size:12px}
+.sh-wk .stk{position:sticky;inset-inline-start:0;z-index:2;text-align:start;font-weight:700;min-width:170px;max-width:240px;background:var(--surface);border-inline-start:0;box-shadow:-1px 0 0 var(--border)}
+.sh-wk thead .stk{z-index:4;background:var(--navy)}
+.sh-wk tbody tr:nth-child(even) td{background:var(--surface-2)}
+.sh-wk tbody tr:nth-child(even) .stk{background:var(--surface-2)}
+.sh-wk td.cellm,.sh-wk td.celle{min-width:54px}
+.sh-wk td.dd{border-inline-start:2px solid var(--navy-line)}
+.sh-wk th.dd{border-inline-start:2px solid rgba(255,255,255,.35)}
+.sh-wk tfoot td{position:sticky;bottom:0;z-index:2;background:var(--gold-soft);font-weight:800;border-top:2px solid var(--gold)}
+.sh-wk tfoot td.stk{background:var(--gold-soft);z-index:3}
+.sh-wk tfoot tr.f2 td{bottom:34px}
+.sh-wkn{font-size:11px;color:var(--text-muted);padding:10px 14px}
+
+/* مۆداڵی هەڵبژاردنی لیست */
+.sh-listmodal{max-width:520px !important;text-align:center}
+.sh-listmodal h4{justify-content:center}
+.sh-bigbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+.sh-bigbtns button{font-family:var(--font-ui);cursor:pointer;border:2px solid var(--border);background:var(--surface-2);color:var(--text);border-radius:14px;
+  padding:20px 8px;display:flex;flex-direction:column;gap:6px;align-items:center;transition:.15s}
+.sh-bigbtns button b{font-size:17px;font-weight:800}
+.sh-bigbtns button small{font-size:12px;color:var(--text-muted);font-weight:700}
+.sh-bigbtns button:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.sh-bigbtns button.cur{border-color:var(--navy);background:linear-gradient(180deg,var(--surface),var(--gold-soft))}
+.sh-bigbtns button.cur::after{content:'دوایین هەڵبژاردن';font-size:10.5px;font-weight:800;color:var(--gold-dark)}
+
+/* مۆداڵی ڕێکخستن */
+.sh-cfgmodal{max-width:760px !important;max-height:92vh;overflow:auto}
+.sh-cfg h5{margin:18px 0 8px;font-size:14px;color:var(--gold-dark);font-weight:800;border-bottom:1px solid var(--border);padding-bottom:6px}
+.sh-cfg .g{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 12px}
+.sh-cfg label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--text-muted)}
+.sh-cfg label.f input{margin:0}
+.sh-cfg label.f input[disabled]{opacity:.6}
+.sh-cfg .days{display:flex;flex-wrap:wrap;gap:8px}
+.sh-cfg .days label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--text);background:var(--surface-2);border:1px solid var(--border);padding:7px 12px;border-radius:999px;cursor:pointer}
+.sh-cfg input[type=checkbox]{width:auto;margin:0;accent-color:var(--teal)}
+.sh-cfg .logo{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.sh-cfg .logo img{width:72px;height:72px;object-fit:contain;border:1px solid var(--border);border-radius:10px;padding:5px;background:#fff}
+.sh-cfg input[type=number]{width:110px}
+
+@media(max-width:760px){
+  .sh-sum{grid-template-columns:repeat(2,1fr)}
+  .sh-bigbtns{grid-template-columns:1fr}
+  .sh-cfg .g{grid-template-columns:1fr}
+  .sh-docbar{flex-direction:column;gap:6px} .sh-docbar .bd{display:none}
+  .sh-tbl th,.sh-tbl td{padding:7px 5px;font-size:13px}
+  .sh-tbl td.no,.sh-tbl th.no{display:none}
+  .sh-tbl td.sw,.sh-tbl th.sw{width:62px}
+  .sh-tbl td.act{width:auto}
+  .sh-chip{padding:8px 12px;font-size:13px}
+  .sh-search{max-width:none;min-width:0;width:100%;flex:1 1 100%}
+  .sh-note{min-width:90px}
+  .sh-wk .stk{min-width:120px;font-size:12.5px}
+}
+
+/* ===================== خشتەی دەوامی کارمەندان — چاپ A4 (لاندسکەیپ) =====================
+   لاپەڕەکان ٢٨٧×١٩٩مم ن (A4 ی لاندسکەیپ مەینەس مارجنی ٥مم ی @page ی گشتی)، بۆیە هیچ @page ی نوێ پێویست نییە و چاپی بەشەکانی تر ناگۆڕێت. */
+#sheet-print-root{display:none}
+@media print{
+  body.print-sheet > *:not(#sheet-print-root){display:none !important}
+  body.print-sheet #sheet-print-root{display:block !important}
+  body.print-sheet{background:#fff !important}
+}
+.sp-page{--navy:#0b1f3a;--navy-2:#122c4f;--navy-line:#22406b;--gold:#c99a2e;--gold-dark:#a97f1e;--grid:#cdd7e7;--zebra:#f4f7fc;
+  width:287mm;height:199mm;position:relative;overflow:hidden;background:#fff;direction:rtl;color:var(--navy);box-sizing:border-box;
+  font-family:'Vazirmatn','Segoe UI',Tahoma,Arial,sans-serif;break-after:page;page-break-after:always;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact}
+.sp-page:last-child{break-after:auto;page-break-after:auto}
+.sp-page *{box-sizing:border-box}
+.sp-frame{position:absolute;inset:4mm;border:.55mm solid var(--gold);border-radius:7mm;overflow:hidden;padding:4mm 9mm 0;display:flex;flex-direction:column}
+.sp-hdr{display:flex;direction:ltr;align-items:center;justify-content:space-between;height:25mm;flex:none}
+.sp-side{flex:0 0 74mm;display:flex;align-items:center}
+.sp-side.l{justify-content:flex-start} .sp-side.r{justify-content:flex-end}
+.sp-bld{width:66mm;height:23mm;object-fit:contain;object-position:left center}
+.sp-titles{flex:1;text-align:center;direction:rtl;padding:0 4mm}
+.sp-uni{font-size:8.4mm;font-weight:800;line-height:1.35;color:var(--navy)}
+.sp-inst{display:flex;align-items:center;justify-content:center;gap:4mm;font-size:5.4mm;font-weight:700;color:var(--navy);margin-top:.4mm}
+.sp-inst i{display:block;height:.5mm;width:15mm;background:var(--gold)}
+.sp-sep{width:.5mm;height:18mm;background:var(--gold);margin:0 6mm 0 0;opacity:.85}
+.sp-logo{width:23mm;height:23mm;object-fit:contain;margin-right:3mm}
+.sp-banner{position:relative;height:12mm;margin-top:1mm;display:flex;align-items:center;justify-content:center;flex:none}
+.sp-banner::before{content:'';position:absolute;left:0;right:0;top:62%;height:.5mm;background:var(--gold)}
+.sp-hex{position:relative;height:11.5mm;padding:0 14mm;display:flex;align-items:center;justify-content:center;background:var(--gold);
+  clip-path:polygon(5mm 0,calc(100% - 5mm) 0,100% 50%,calc(100% - 5mm) 100%,5mm 100%,0 50%)}
+.sp-hex::before{content:'';position:absolute;inset:.7mm;background:var(--navy);clip-path:polygon(4.5mm 0,calc(100% - 4.5mm) 0,100% 50%,calc(100% - 4.5mm) 100%,4.5mm 100%,0 50%)}
+.sp-hex span{position:relative;color:#fff;font-size:7mm;font-weight:800;white-space:nowrap}
+.sp-day{display:flex;align-items:center;gap:4mm;margin-top:1mm;height:9mm;flex:none}
+.sp-day i{flex:1;height:.45mm;background:var(--gold);opacity:.9}
+.sp-day div{border:.5mm solid var(--gold);border-radius:99mm;padding:.2mm 12mm;font-size:5.6mm;font-weight:800;background:#fff;white-space:nowrap}
+.sp-tb{width:100%;border-collapse:separate;border-spacing:0;margin-top:2mm;border:.5mm solid var(--navy-line);border-radius:3mm;overflow:hidden;table-layout:fixed;flex:none}
+.sp-tb th{background:var(--navy);color:#fff;font-size:4.6mm;font-weight:700;height:9mm;border-left:.3mm solid rgba(255,255,255,.18);padding:0}
+.sp-tb th:last-child{border-left:0}
+.sp-tb td{height:var(--rh);border-top:.3mm solid var(--grid);border-left:.3mm solid var(--grid);text-align:center;font-size:min(4.5mm,calc(var(--rh)*.52));font-weight:700;padding:0 2.5mm;overflow:hidden}
+.sp-tb td:last-child{border-left:0}
+.sp-tb tbody tr:nth-child(even) td{background:var(--zebra)}
+.sp-tb td.n{font-weight:800;color:var(--navy-2)}
+.sp-tb td.nm{text-align:right;padding-right:4mm;white-space:nowrap;text-overflow:ellipsis}
+.sp-tb td.nt{font-size:min(3.8mm,calc(var(--rh)*.44));font-weight:600;color:#6b4e0e;text-align:right;padding-right:3mm;white-space:nowrap;text-overflow:ellipsis}
+.sp-tb col.c1{width:8%} .sp-tb col.c2{width:34%} .sp-tb col.c3{width:13%} .sp-tb col.c4{width:13%} .sp-tb col.c5{width:32%}
+.sp-cb{position:relative;display:inline-block;width:calc(var(--rh)*.76);height:calc(var(--rh)*.76);max-width:6.6mm;max-height:6.6mm;vertical-align:middle;border:.5mm solid #2a4b7e;border-radius:1.8mm;
+  background:linear-gradient(180deg,#fff 0%,#eef3fa 100%);box-shadow:inset 0 .35mm .7mm rgba(11,31,58,.12),0 .25mm 0 rgba(201,154,46,.45)}
+.sp-cb.m{background:linear-gradient(180deg,#2a63c0,#1f56b5);border-color:#17408a;box-shadow:0 .25mm 0 rgba(201,154,46,.5)}
+.sp-cb.e{background:linear-gradient(180deg,#dcae3f,#c99a2e);border-color:#a97f1e;box-shadow:0 .25mm 0 rgba(11,31,58,.25)}
+.sp-cb svg{position:absolute;inset:0;width:100%;height:100%}
+.sp-sp{flex:1 1 0;min-height:2mm}
+.sp-foot{display:flex;direction:rtl;height:19.5mm;margin:0 0 13mm;border:.5mm solid var(--gold);border-radius:4.5mm;overflow:hidden;background:#fff;flex:none}
+.sp-lead{width:27%;background:var(--navy);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4mm;text-align:center;font-size:4.5mm;font-weight:800;padding:0 3mm;line-height:1.3}
+.sp-lbox{min-width:20mm;height:7.4mm;padding:0 4mm;border-radius:2.2mm;background:#fff;color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:5.4mm;font-weight:800;border:.4mm solid var(--gold)}
+.sp-cell{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.8mm;padding-top:.3mm;border-right:.5mm solid var(--gold)}
+.sp-cell.f{border-right:0}
+.sp-cell b{font-size:4.5mm;font-weight:800;color:var(--navy)}
+.sp-box{width:26mm;height:8.4mm;border:.5mm solid var(--navy-line);border-radius:2.4mm;background:linear-gradient(180deg,#fff,#f1f5fb);box-shadow:inset 0 .3mm .6mm rgba(11,31,58,.10);
+  display:flex;align-items:center;justify-content:center;font-size:5.4mm;font-weight:800}
+.sp-cont{height:19.5mm;margin:0 0 13mm;display:flex;align-items:center;gap:4mm;flex:none;color:#6b7c93;font-size:4.2mm;font-weight:700}
+.sp-cont i{flex:1;height:.4mm;background:var(--gold);opacity:.7}
+.sp-swoosh{position:absolute;left:0;bottom:0;width:100%;height:10mm}
+.sp-pn{position:absolute;bottom:1.5mm;left:0;right:0;text-align:center;color:#eaf0fa;font-size:3.5mm;font-weight:700;letter-spacing:.2mm}
+</style>
+<!-- SHEET-CSS-END -->
 </head>
 <body>
 
@@ -531,6 +764,7 @@ table.att td.namecell{white-space:nowrap}
       <span id="tab-scan" class="tab admin" style="display:none;margin-inline-start:0" onclick="switchTab('scan_panel')">📷 سکان</span>
       <span id="tab-report" class="tab admin" style="display:none;margin-inline-start:0" onclick="switchTab('report_panel')">📊 ڕاپۆرت</span>
       <span id="tab-leave" class="tab admin" style="display:none;margin-inline-start:0" onclick="switchTab('leave_panel')">🗓️ مۆڵەت</span>
+      <span id="tab-sheet" class="tab admin" style="display:none;margin-inline-start:0" onclick="switchTab('sheet_panel')">📋 خشتەی دەوام</span>
       <span id="tab-audit" class="tab admin" style="display:none;margin-inline-start:0" onclick="switchTab('audit_panel')">🕘 مێژووی چالاکی</span>
     </nav>
   </header>
@@ -613,11 +847,13 @@ table.att td.namecell{white-space:nowrap}
           <label class="perm-check"><input type="checkbox" id="p-profile"> پرۆفایل</label>
           <label class="perm-check"><input type="checkbox" id="p-scan"> سکان</label>
           <label class="perm-check"><input type="checkbox" id="p-report"> ڕاپۆرت</label>
+          <label class="perm-check"><input type="checkbox" id="p-sheetview"> خشتەی دەوام: بینین و چاپ</label>
+          <label class="perm-check"><input type="checkbox" id="p-sheetedit"> خشتەی دەوام: دەستکاری</label>
           <button class="btn teal" onclick="addNewAdmin()">➕ زیادکردنی ئادمین</button>
         </div>
         <table class="admin-table">
           <thead><tr>
-            <th>بەکارهێنەر</th><th>پاسوۆرد</th><th>زیادکردن</th><th>سڕینەوە</th><th>دەستکاری</th><th>خشتە و چاپ</th><th>پرۆفایل</th><th>سکان</th><th>ڕاپۆرت</th><th>کردار</th>
+            <th>بەکارهێنەر</th><th>پاسوۆرد</th><th>زیادکردن</th><th>سڕینەوە</th><th>دەستکاری</th><th>خشتە و چاپ</th><th>پرۆفایل</th><th>سکان</th><th>ڕاپۆرت</th><th>خشتەی دەوام<br>بینین/چاپ</th><th>خشتەی دەوام<br>دەستکاری</th><th>کردار</th>
           </tr></thead>
           <tbody id="admin-list-body"></tbody>
         </table>
@@ -814,6 +1050,25 @@ table.att td.namecell{white-space:nowrap}
       </div>
     </div>
 
+<!-- SHEET-HTML-START -->
+    <!-- ============ خشتەی دەوامی کارمەندان (v3.2) ============ -->
+    <div id="sheet-container" style="display:none">
+      <div class="card">
+        <div class="sh-top">
+          <h3>📋 خشتەی دەوامی کارمەندان</h3>
+          <div class="sh-bar">
+            <span class="sh-status" id="sh-status"></span>
+            <button class="sh-btn" id="sh-cfg-btn" data-act="cfg" style="display:none">⚙️ ڕێکخستن</button>
+          </div>
+        </div>
+        <p class="hint" style="margin:0">خشتەی هەفتانەی دیاریکراو: هەر کەس لە هەر ڕۆژێکدا بەیانی، ئێوارە یان هەردووکی دەوام دەکات. هیچ بەروارێک نییە، هەرچی دیاری دەکەیت دەمێنێتەوە تا خۆت بیگۆڕیت. گۆڕانکاری لێرە کاریگەری نییە لەسەر لیستی گرێبەست/هەمیشەیی/کارگوزار.</p>
+        <div class="sh-row"><span class="sh-lbl">لیست</span><div class="sh-seg" id="sh-cats"></div></div>
+        <div class="sh-row"><span class="sh-lbl">ڕۆژ</span><div class="sh-seg" id="sh-days"></div></div>
+        <div class="sh-row" id="sh-modebar"></div>
+        <div id="sh-body"></div>
+      </div>
+    </div>
+<!-- SHEET-HTML-END -->
     <!-- ============ مێژووی چالاکی ============ -->
     <div id="audit-container" style="display:none">
       <div class="card">
@@ -840,6 +1095,20 @@ table.att td.namecell{white-space:nowrap}
   </div>
 </div>
 
+<!-- SHEET-MODALS-START -->
+<!-- ============ خشتەی دەوام: مۆداڵەکان ============ -->
+<div class="modal-back" id="sheet-list-modal">
+  <div class="modal sh-listmodal">
+    <h4>📋 کام لیست؟</h4>
+    <p>لیستێک هەڵبژێرە بۆ ئەوەی ناوەکانی ببینیت و دەوامی ڕۆژەکانی ڕێک بخەیت.</p>
+    <div class="sh-bigbtns" id="sh-listbtns"></div>
+    <div class="modal-actions" style="justify-content:center"><button class="btn ghost" id="sh-list-close" style="color:var(--text)">داخستن</button></div>
+  </div>
+</div>
+<div class="modal-back" id="sheet-cfg-modal">
+  <div class="modal sh-cfgmodal sh-cfg" id="sh-cfgbox"></div>
+</div>
+<!-- SHEET-MODALS-END -->
 <div id="toast-wrap"></div>
 
 <script>
@@ -1059,6 +1328,7 @@ async function afterLogin(){
   document.getElementById('tab-scan').style.display=canScan?'inline-flex':'none';
   document.getElementById('tab-report').style.display=canReport?'inline-flex':'none';
   document.getElementById('tab-leave').style.display='inline-flex';
+  document.getElementById('tab-sheet').style.display=(currentUser.isSuper||currentUser.allowSheetView||currentUser.allowSheetEdit)?'inline-flex':'none';
   document.getElementById('tab-audit').style.display=currentUser.isSuper?'inline-flex':'none';
   try{ await reloadEmployees(); }catch(e){ toast(apiErr(e),'error'); }
   if(currentUser.isSuper){ try{ await loadAdmins(); renderAdminList(); }catch(e){} backupReminder(); }
@@ -1110,6 +1380,8 @@ function renderAdminList(){
       <td><input type="checkbox" ${adm.allowProfile?'checked':''} onchange="togglePerm('${esc(u)}','allowProfile')" ${locked?'disabled':''}></td>
       <td><input type="checkbox" ${adm.allowScan?'checked':''} onchange="togglePerm('${esc(u)}','allowScan')" ${locked?'disabled':''}></td>
       <td><input type="checkbox" ${adm.allowReport?'checked':''} onchange="togglePerm('${esc(u)}','allowReport')" ${locked?'disabled':''}></td>
+      <td><input type="checkbox" ${adm.allowSheetView||adm.isSuper?'checked':''} onchange="togglePerm('${esc(u)}','allowSheetView')" ${locked?'disabled':''}></td>
+      <td><input type="checkbox" ${adm.allowSheetEdit||adm.isSuper?'checked':''} onchange="togglePerm('${esc(u)}','allowSheetEdit')" ${locked?'disabled':''}></td>
       <td>${adm.isSuper?'—':`<button class="btn danger" onclick="removeAdmin('${esc(u)}')">سڕینەوە</button>`}</td>
     </tr>`;
   });
@@ -1126,7 +1398,9 @@ async function addNewAdmin(){
       allowPdf:document.getElementById('p-pdf').checked,
       allowProfile:document.getElementById('p-profile').checked,
       allowScan:document.getElementById('p-scan').checked,
-      allowReport:document.getElementById('p-report').checked});
+      allowReport:document.getElementById('p-report').checked,
+      allowSheetView:document.getElementById('p-sheetview').checked,
+      allowSheetEdit:document.getElementById('p-sheetedit').checked});
     await loadAdmins(); renderAdminList();
     document.getElementById('new-adm-user').value=''; document.getElementById('new-adm-pass').value='';
     toast('ئادمینی نوێ زیادکرا.','success');
@@ -1166,9 +1440,10 @@ function switchTab(tab){
     document.querySelector('.action-bar').style.display='none';
     document.getElementById('admin-container').style.display='block';
     document.getElementById('staff-container').style.display='none';
+    document.getElementById('sheet-container').style.display='none';
     return;
   }
-  if(tab==='staff_panel'||tab==='scan_panel'||tab==='report_panel'||tab==='leave_panel'||tab==='audit_panel'){
+  if(tab==='staff_panel'||tab==='scan_panel'||tab==='report_panel'||tab==='leave_panel'||tab==='audit_panel'||tab==='sheet_panel'){
     document.getElementById('app').style.display='none';
     document.querySelector('.sheet-toolbar').style.display='none';
     document.querySelector('.action-bar').style.display='none';
@@ -1178,6 +1453,8 @@ function switchTab(tab){
     document.getElementById('report-container').style.display = tab==='report_panel'?'block':'none';
     document.getElementById('leave-container').style.display = tab==='leave_panel'?'block':'none';
     document.getElementById('audit-container').style.display = tab==='audit_panel'?'block':'none';
+    document.getElementById('sheet-container').style.display = tab==='sheet_panel'?'block':'none';
+    if(tab==='sheet_panel'){ document.getElementById('tab-sheet').classList.add('active'); if(typeof openSheetTab==='function') openSheetTab(); }
     if(tab==='audit_panel'){ document.getElementById('tab-audit').classList.add('active'); loadAudit(); }
     if(tab==='staff_panel'){ document.getElementById('tab-staff').classList.add('active'); loadStaff(); }
     if(tab==='scan_panel'){ document.getElementById('tab-scan').classList.add('active'); }
@@ -1191,6 +1468,7 @@ function switchTab(tab){
   document.getElementById('report-container').style.display='none';
   document.getElementById('leave-container').style.display='none';
   document.getElementById('audit-container').style.display='none';
+  document.getElementById('sheet-container').style.display='none';
   if(typeof stopScan==='function') stopScan();
   document.getElementById('app').style.display='block';
   document.querySelector('.sheet-toolbar').style.display='flex';
@@ -2299,5 +2577,535 @@ async function downloadAllCards(){
   }
 })();
 </script>
+<!-- SHEET-JS-START -->
+<script>
+/* ==========================================================================
+   خشتەی دەوامی کارمەندان (v3.2)
+   خشتەی هەفتانەی دیاریکراو بێ بەروار. داتاکان لە خشتەی sheet_rows ی داتابەیس هەڵدەگیرێن (جیا لە لیستی سەرەکی).
+   ڕۆژی هەفتە: ٠=شەممە ... ٦=هەینی (هەمان WDAYS).
+   ========================================================================== */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const ar=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const CAT_ORDER=['permanent','contract','service'];
+const arCmp=(a,b)=>String(a).localeCompare(String(b),'ar');
+const keyOf=(eid,wd)=>eid+'|'+wd;
+const SH={cat:null,day:null,mode:'pick',cfg:null,defaults:{},uni:'',inst:'',canEdit:false,
+  emps:[],rows:[],byKey:new Map(),byId:new Map(),search:'',pending:0,failed:false,savedAt:0,q:new Map(),seq:0,opening:false};
+
+/* ------------------------------ یارمەتیدەرەکان ------------------------------ */
+function reindex(){
+  SH.byKey.clear(); SH.byId.clear();
+  for(const r of SH.rows){ if(r.id!=null) SH.byId.set(r.id,r); if(r.employeeId!=null && !r.orphan) SH.byKey.set(keyOf(r.employeeId,r.weekday),r); }
+}
+const dayRows=wd=>SH.rows.filter(r=>r.weekday===wd);
+const sorted=rs=>rs.slice().sort((a,b)=>arCmp(a.name,b.name));
+function counts(wd){
+  let m=0,e=0,b=0,t=0;
+  for(const r of SH.rows){ if(r.weekday!==wd) continue;
+    if(r.morning) m++; if(r.evening) e++; if(r.morning&&r.evening) b++; if(r.morning||r.evening) t++; }
+  return {m,e,b,t};
+}
+const T=()=>SH.cfg.texts;
+function setStatus(){
+  const el=$('sh-status'); if(!el) return;
+  if(SH.pending>0){ el.className='sh-status saving'; el.textContent='⏳ پاشەکەوتکردن...'; }
+  else if(SH.failed){ el.className='sh-status err'; el.textContent='⚠️ هەندێک گۆڕانکاری پاشەکەوت نەبوو'; }
+  else if(SH.savedAt){ el.className='sh-status ok'; el.textContent='✓ هەموو گۆڕانکارییەکان پاشەکەوتکران'; }
+  else { el.className='sh-status'; el.textContent=''; }
+}
+// هەر ڕیزێک بە ڕیز (queue) پاشەکەوت دەکرێت، بۆ ئەوەی دوایین کرداری بەکارهێنەر هەمیشە براوە بێت
+function enqueue(key,fn){
+  SH.pending++; SH.failed=false; setStatus();
+  const prev=SH.q.get(key)||Promise.resolve();
+  const p=prev.then(fn).then(()=>{ SH.savedAt=Date.now(); },async e=>{
+    SH.failed=true; toast(apiErr(e),'error'); try{ await loadData(true); }catch(_){}
+  }).then(()=>{ SH.pending--; if(SH.q.get(key)===p) SH.q.delete(key); setStatus(); });
+  SH.q.set(key,p); return p;
+}
+const isLinked=r=>r.employeeId!=null && !r.manual && !r.orphan;
+
+/* ------------------------------ بارکردن ------------------------------ */
+async function loadConfig(){
+  const r=await API.get('/sheet/config');
+  SH.cfg=r.config; SH.defaults=r.defaults||{}; SH.uni=r.uniName; SH.inst=r.instName; SH.canEdit=!!r.canEdit;
+  if(SH.day!=null && SH.day!=='week' && !SH.cfg.days.includes(SH.day)) SH.day=SH.cfg.days[0];
+}
+function chooseMode(){ if(SH.day!=='week') SH.mode=dayRows(SH.day).length?'sheet':'pick'; }
+async function loadData(keepMode){
+  const seq=++SH.seq;
+  const d=await API.get('/sheet/data?category='+encodeURIComponent(SH.cat));
+  if(seq!==SH.seq) return;
+  SH.emps=d.employees.slice().sort((a,b)=>arCmp(a.name,b.name));
+  SH.rows=d.rows; reindex();
+  if(!keepMode) chooseMode();
+  render();
+}
+function askList(){
+  return new Promise(res=>{
+    const m=$('sheet-list-modal'), box=$('sh-listbtns');
+    box.innerHTML=CAT_ORDER.map(c=>`<button data-c="${c}" class="${SH.cat===c?'cur':''}"><b>${CAT_LABEL[c]}</b><small>${ar((employees[c]||[]).length)} کەس</small></button>`).join('');
+    m.classList.add('show');
+    const onKey=e=>{ if(e.key==='Escape') done(null); };
+    const done=v=>{ m.classList.remove('show'); m.onclick=null; box.onclick=null; $('sh-list-close').onclick=null; document.removeEventListener('keydown',onKey); res(v); };
+    document.addEventListener('keydown',onKey);
+    box.onclick=e=>{ const b=e.target.closest('button[data-c]'); if(b) done(b.dataset.c); };
+    $('sh-list-close').onclick=()=>done(null);
+    m.onclick=e=>{ if(e.target===m) done(null); };
+  });
+}
+async function openSheetTab(){
+  if(SH.opening) return; SH.opening=true;
+  try{
+    await loadConfig();
+    $('sh-cfg-btn').style.display=SH.canEdit?'':'none';
+    if(!CAT_ORDER.includes(SH.cat)){ const sc=localStorage.getItem('epu_sheet_cat'); SH.cat=CAT_ORDER.includes(sc)?sc:'permanent'; }
+    if(SH.day==null){ const sd=localStorage.getItem('epu_sheet_day'); SH.day=sd==='week'?'week':(SH.cfg.days.includes(+sd)?+sd:SH.cfg.days[0]); }
+    SH.search=''; setStatus(); renderBar(); $('sh-body').innerHTML='';
+    const c=await askList();
+    if(c){ SH.cat=c; try{ localStorage.setItem('epu_sheet_cat',c); }catch(e){} }
+    $('sh-body').innerHTML='<div class="sh-empty">چاوەڕێ بکە...</div>';
+    await loadData(false);
+  }catch(e){ toast(apiErr(e),'error'); $('sh-body').innerHTML='<div class="sh-empty">'+esc(apiErr(e))+'</div>'; }
+  finally{ SH.opening=false; }
+}
+
+/* ------------------------------ ڕووکار ------------------------------ */
+const SW=(kind,checked,attrs,dis,lbl)=>`<label class="sh-sw ${kind}"><input type="checkbox" ${checked?'checked':''} ${dis?'disabled':''} ${attrs} aria-label="${esc(lbl)}"><span class="tr"></span></label>`;
+const SWS=(kind,checked,attrs,dis,lbl)=>SW(kind+' sm',checked,attrs,dis,lbl);
+function renderBar(){
+  if(!SH.cfg) return;
+  $('sh-cats').innerHTML=CAT_ORDER.map(c=>`<button class="sh-chip${SH.cat===c?' active':''}" data-act="cat" data-cat="${c}">${CAT_LABEL[c]} <span class="n">${ar((employees[c]||[]).length)}</span></button>`).join('');
+  $('sh-days').innerHTML=SH.cfg.days.map(d=>`<button class="sh-chip day${SH.day===d?' active':''}" data-act="day" data-d="${d}">${esc(WDAYS[d])} <span class="n">${ar(counts(d).t)}</span></button>`).join('')
+    +`<button class="sh-chip week${SH.day==='week'?' active':''}" data-act="day" data-d="week">📅 هەموو هەفتە</button>`;
+  const wk=SH.day==='week';
+  let h='';
+  if(!wk) h+=`<div class="sh-seg"><button class="sh-btn${SH.mode==='pick'?' on':''}" data-act="mode" data-m="pick">👥 هەڵبژاردنی کەسەکان</button><button class="sh-btn${SH.mode==='sheet'?' on':''}" data-act="mode" data-m="sheet">📄 خشتە</button></div>`;
+  h+='<span class="sh-sep"></span>';
+  if(!wk) h+=`<button class="sh-btn pri" data-act="print" data-w="day">🖨️ چاپی ${esc(WDAYS[SH.day])}</button>`;
+  h+=`<button class="sh-btn gold" data-act="print" data-w="all">🖨️ چاپی هەموو ڕۆژەکان</button>`;
+  h+=`<button class="sh-btn" data-act="print" data-w="blank" title="خشتەی بەتاڵ بۆ تیک‌کردن بە دەست">📝 چاپی بەتاڵ</button>`;
+  $('sh-modebar').innerHTML=h;
+}
+function sumHtml(c){
+  const t=T();
+  return `<div class="sh-sum">
+    <div class="sh-sumc m"><b>${esc(t.fM)}</b><span>${ar(c.m)}</span></div>
+    <div class="sh-sumc e"><b>${esc(t.fE)}</b><span>${ar(c.e)}</span></div>
+    <div class="sh-sumc"><b>${esc(t.fB)}</b><span>${ar(c.b)}</span></div>
+    <div class="sh-sumc t"><b>${esc(t.fLead)}</b><span>${ar(c.t)}</span></div></div>`;
+}
+function refreshLive(){
+  renderBar();
+  if(SH.day==='week'){ renderWeekFoot(); return; }
+  const w=document.querySelectorAll('#sh-body .sh-sumwrap'); const c=counts(SH.day);
+  w.forEach(x=>{ x.innerHTML=sumHtml(c); });
+}
+function render(){
+  renderBar(); if(!SH.cfg) return;
+  if(SH.day==='week') renderWeek(); else if(SH.mode==='pick') renderPick(); else renderSheet();
+}
+const visibleEmps=()=>{ const t=SH.search.trim(); return SH.emps.filter(e=>!t||String(e.name).includes(t)); };
+
+/* ---- دۆخی «هەڵبژاردنی کەسەکان» ---- */
+function renderPick(){
+  const ed=SH.canEdit;
+  $('sh-body').innerHTML=`
+    <div class="sh-sumwrap top"></div>
+    <div class="sh-panel">
+      <div class="sh-tools">
+        <input class="sh-search" id="sh-search" type="search" placeholder="🔍 گەڕان بۆ ناو..." value="${esc(SH.search)}" autocomplete="off">
+        ${ed?`<button class="sh-btn" data-act="bulk" data-w="m"><i class="sh-dot m"></i> هەموو بەیانی</button>
+        <button class="sh-btn" data-act="bulk" data-w="e"><i class="sh-dot e"></i> هەموو ئێوارە</button>
+        <button class="sh-btn" data-act="bulk" data-w="wd" title="ئەو کەسانە هەڵدەبژێرێت کە لە پرۆفایلەکەیاندا ئەم ڕۆژە وەک ڕۆژی کار دیاری کراوە">📆 بەپێی ڕۆژانی کاری پرۆفایل</button>
+        <button class="sh-btn danger" data-act="bulk" data-w="clear">✖ لابردنی هەموو</button>`:''}
+      </div>
+      <div id="sh-list"></div>
+      ${ed?`<div class="sh-tools" style="border-top:1px solid var(--border);border-bottom:0">
+        <input class="sh-search" id="sh-manual" placeholder="➕ ناوی دەستی (کەسێک کە لە لیستی سەرەکیدا نییە)" autocomplete="off" maxlength="120">
+        <button class="sh-btn" data-act="addmanual">زیادکردن</button></div>`:''}
+    </div>
+    <p class="sh-hint" style="margin:10px 2px 0">هەر سویچێکی بەیانی یان ئێوارە بکەیتەوە، ئەو کەسە لە ڕۆژی <b>${esc(WDAYS[SH.day])}</b> دەکەوێتە خشتەکە. هەردوو سویچ بکوژێنیتەوە، لەو ڕۆژە لادەچێت. لیستی سەرەکی (${CAT_LABEL[SH.cat]}) هیچ ناگۆڕێت.</p>`;
+  renderList(); refreshLive();
+}
+function nameCell(r,withActions){
+  let h=esc(r.name);
+  if(r.manual) h+='<span class="sh-tag man">دەستی</span>';
+  if(r.orphan) h+='<span class="sh-tag orp" title="لە لیستی سەرەکی سڕاوەتەوە">لە لیستی سەرەکی نەماوە</span>';
+  if(r.renamed) h+='<span class="sh-tag ren" title="ناوەکە تەنها لە خشتەی دەوام گۆڕاوە: '+esc(r.realName)+'">ناوی خشتە</span>';
+  if(withActions && SH.canEdit){
+    h+=` <button class="sh-ic" data-act="rename" data-id="${r.id}" title="گۆڕینی ناو">✎</button>`;
+    if(r.manual) h+=` <select class="sh-mv" data-act="mvsel" data-id="${r.id}" title="گواستنەوە بۆ لیستێکی تر">${CAT_ORDER.map(c=>`<option value="${c}"${c===SH.cat?' selected':''}>${CAT_LABEL[c]}</option>`).join('')}</select>`;
+    h+=` <button class="sh-ic danger" data-act="rmrow" data-id="${r.id}" title="لابردن">🗑</button>`;
+  }
+  return h;
+}
+function renderList(){
+  const wd=SH.day, ed=SH.canEdit, t=SH.search.trim();
+  const dis=!ed;
+  let i=0, html='';
+  for(const e of visibleEmps()){
+    const r=SH.byKey.get(keyOf(e.id,wd)); const sel=!!(r&&(r.morning||r.evening));
+    const a=`data-act="tog" data-e="${e.id}" data-d="${wd}"`;
+    html+=`<tr class="${sel?'sel':''}"><td class="no">${ar(++i)}</td><td class="nm">${esc(r?r.name:e.name)}${r&&r.renamed?'<span class="sh-tag ren" title="ناوەکە تەنها لە خشتەی دەوام گۆڕاوە">ناوی خشتە</span>':''}</td>
+      <td class="sw">${SW('m',r&&r.morning,a+' data-f="morning"',dis,'بەیانی — '+e.name)}</td>
+      <td class="sw">${SW('e',r&&r.evening,a+' data-f="evening"',dis,'ئێوارە — '+e.name)}</td></tr>`;
+  }
+  const extra=sorted(dayRows(wd).filter(r=>(r.manual||r.orphan)&&(!t||String(r.name).includes(t))));
+  for(const r of extra){
+    const a=`data-act="tog" data-id="${r.id}" data-d="${wd}"`;
+    html+=`<tr class="${r.morning||r.evening?'sel':''}"><td class="no">${ar(++i)}</td><td class="nm">${nameCell(r,true)}</td>
+      <td class="sw">${SW('m',r.morning,a+' data-f="morning"',dis,'بەیانی — '+r.name)}</td>
+      <td class="sw">${SW('e',r.evening,a+' data-f="evening"',dis,'ئێوارە — '+r.name)}</td></tr>`;
+  }
+  $('sh-list').innerHTML=i?`<table class="sh-tbl"><thead><tr><th class="no">ژمارە</th><th>${esc(T().hName)}</th><th class="sw">${esc(T().hM)}</th><th class="sw">${esc(T().hE)}</th></tr></thead><tbody>${html}</tbody></table>`
+    :'<div class="sh-empty">هیچ ناوێک نەدۆزرایەوە.</div>';
+}
+
+/* ---- دۆخی «خشتە» (وەک بەڵگەی فەرمی) ---- */
+function renderSheet(){
+  const wd=SH.day, ed=SH.canEdit, rs=sorted(dayRows(wd)), c=T();
+  const logo=SH.cfg.logo||EPU_LOGO;
+  const doc=`<div class="sh-docbar">
+      ${SH.cfg.showBuilding?'<img class="bd" src="/sheet-building.svg" alt="">':''}
+      <div><div class="u">${esc(SH.uni)}</div><div class="i">${esc(SH.inst)}</div></div>
+      <img class="lg" src="${esc(logo)}" alt="EPU"></div>
+    <div class="sh-title"><span>${esc(c.title)}</span></div>
+    <div class="sh-dayp"><span>${esc(c.dayLbl)} ${esc(WDAYS[wd])}</span></div>`;
+  let body;
+  if(!rs.length){
+    body=`<div class="sh-empty">هیچ ناوێک بۆ ڕۆژی <b>${esc(WDAYS[wd])}</b> هەڵنەبژێردراوە.<br>${ed?'<button class="sh-btn pri" data-act="gopick">👥 هەڵبژاردنی کەسەکان</button>':''}</div>`;
+  } else {
+    let i=0;
+    const rows=rs.map(r=>{
+      const lk=isLinked(r), a=(lk?`data-e="${r.employeeId}"`:`data-id="${r.id}"`)+` data-d="${wd}"`;
+      return `<tr><td class="no">${ar(++i)}</td><td class="nm">${nameCell(r,false)}${ed?` <button class="sh-ic" data-act="rename" data-id="${r.id}" title="گۆڕینی ناو (تەنها لە خشتە)">✎</button>`:''}</td>
+        <td class="sw">${SW('m',r.morning,`data-act="tog" data-f="morning" ${a}`,!ed,'بەیانی — '+r.name)}</td>
+        <td class="sw">${SW('e',r.evening,`data-act="tog" data-f="evening" ${a}`,!ed,'ئێوارە — '+r.name)}</td>
+        <td><input class="sh-note" data-act="note" ${a} value="${esc(r.note)}" maxlength="300" ${ed?'':'readonly'} placeholder="${ed?'تێبینی...':''}"></td>
+        <td class="act">${ed?`<button class="sh-ic danger" data-act="rmrow" data-id="${r.id}" data-e="${lk?r.employeeId:''}" data-d="${wd}" title="لابردن لەم ڕۆژە">✕</button>`:''}</td></tr>`;
+    }).join('');
+    body=`<table class="sh-tbl"><thead><tr><th class="no">${esc(c.hNum)}</th><th>${esc(c.hName)}</th><th class="sw">${esc(c.hM)}</th><th class="sw">${esc(c.hE)}</th><th>${esc(c.hNote)}</th><th class="act"></th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  $('sh-body').innerHTML=`<div class="sh-panel sh-paper">${doc}${body}</div><div class="sh-sumwrap"></div>`;
+  refreshLive();
+}
+
+/* ---- «هەموو هەفتە» ---- */
+function renderWeek(){
+  const days=SH.cfg.days;
+  $('sh-body').innerHTML=`
+    <div class="sh-panel">
+      <div class="sh-tools"><input class="sh-search" id="sh-search" type="search" placeholder="🔍 گەڕان بۆ ناو..." value="${esc(SH.search)}" autocomplete="off">
+        <span class="sh-hint">دەوامی هەر کەسێک لە هەموو ڕۆژەکاندا بە یەک چاو. هەردوو سویچ بکوژێنیتەوە، کەسەکە لەو ڕۆژە لادەچێت.</span></div>
+      <div class="sh-wk"><table>
+        <thead><tr><th class="stk" rowspan="2">${esc(T().hName)}</th>${days.map(d=>`<th class="dd" colspan="2">${esc(WDAYS[d])}</th>`).join('')}</tr>
+        <tr class="r2">${days.map(()=>`<th class="dd">${esc(T().hM)}</th><th>${esc(T().hE)}</th>`).join('')}</tr></thead>
+        <tbody id="sh-wkbody"></tbody>
+        <tfoot id="sh-wkfoot"></tfoot></table></div>
+      <div class="sh-wkn" id="sh-wknote"></div>
+    </div>`;
+  renderWeekRows(); renderWeekFoot();
+}
+function renderWeekRows(){
+  const days=SH.cfg.days, ed=SH.canEdit, dis=!ed;
+  $('sh-wkbody').innerHTML=visibleEmps().map(e=>`<tr><td class="stk">${esc(e.name)}</td>${days.map(d=>{
+      const r=SH.byKey.get(keyOf(e.id,d)); const a=`data-act="tog" data-e="${e.id}" data-d="${d}"`;
+      return `<td class="cellm dd">${SWS('m',r&&r.morning,a+' data-f="morning"',dis,esc(WDAYS[d])+' بەیانی — '+e.name)}</td><td class="celle">${SWS('e',r&&r.evening,a+' data-f="evening"',dis,esc(WDAYS[d])+' ئێوارە — '+e.name)}</td>`;
+    }).join('')}</tr>`).join('')||`<tr><td class="stk" colspan="${1+days.length*2}">هیچ ناوێک نەدۆزرایەوە.</td></tr>`;
+}
+function renderWeekFoot(){
+  const f=$('sh-wkfoot'); if(!f) return; const days=SH.cfg.days, t=T();
+  const cs=days.map(d=>counts(d));
+  f.innerHTML=`<tr class="f1"><td class="stk">${esc(t.fM)} / ${esc(t.fE)}</td>${cs.map(c=>`<td class="dd">${ar(c.m)}</td><td>${ar(c.e)}</td>`).join('')}</tr>
+    <tr class="f2"><td class="stk">${esc(t.fB)} · ${esc(t.fLead)}</td>${cs.map(c=>`<td class="dd" colspan="2">${ar(c.b)} · <span title="${esc(t.fLead)}">${ar(c.t)}</span></td>`).join('')}</tr>`;
+  const extra=SH.rows.some(r=>r.manual||r.orphan);
+  const n=$('sh-wknote'); if(n) n.textContent=extra?'ناوە دەستییەکان (و ئەوانەی لە لیستی سەرەکی سڕاونەتەوە) لێرە نیشان نادرێن، بەڵام لە کۆکراوەکاندا هەژمار دەکرێن. لە تابی هەر ڕۆژێکەوە دەستکاریان بکە.':'';
+}
+
+/* ------------------------------ کردارەکان ------------------------------ */
+function setShift(empId,rowId,wd,field,val){
+  if(!SH.canEdit) return null;
+  let row=empId!=null?SH.byKey.get(keyOf(empId,wd)):SH.byId.get(rowId);
+  if(!row && empId!=null){
+    const e=SH.emps.find(x=>x.id===empId); if(!e) return null;
+    row={id:null,employeeId:empId,weekday:wd,morning:false,evening:false,note:'',name:e.name,realName:e.name,renamed:false,manual:false,orphan:false};
+    SH.rows.push(row); SH.byKey.set(keyOf(empId,wd),row);
+  }
+  if(!row) return null;
+  row[field]=val;
+  // لە «هەڵبژاردنی کەسەکان» و «هەموو هەفتە»: هەردوو سویچ کوژاوە (و تێبینی نییە) = کەسەکە لەو ڕۆژە نییە
+  const drop=empId!=null && (SH.day==='week'||SH.mode==='pick') && !row.morning && !row.evening && !row.note;
+  if(drop){ const ix=SH.rows.indexOf(row); if(ix>=0) SH.rows.splice(ix,1); SH.byKey.delete(keyOf(empId,wd)); if(row.id!=null) SH.byId.delete(row.id); }
+  refreshLive();
+  if(empId!=null){
+    enqueue(keyOf(empId,wd),async()=>{
+      if(drop){ await API.post('/sheet/rows',{items:[{employeeId:empId,weekday:wd,remove:true}]}); return; }
+      const r=await API.post('/sheet/rows',{items:[{employeeId:empId,weekday:wd,[field]:val}]});
+      const o=r.rows&&r.rows[0]; if(o&&o.id!=null){ row.id=o.id; SH.byId.set(o.id,row); }
+    });
+  } else enqueue('r'+rowId,()=>API.put('/sheet/row/'+rowId,{[field]:val}));
+  return drop?null:row;
+}
+function setNote(empId,rowId,wd,val){
+  const row=empId!=null?SH.byKey.get(keyOf(empId,wd)):SH.byId.get(rowId);
+  if(!row||row.note===val) return;
+  row.note=val;
+  if(empId!=null) enqueue(keyOf(empId,wd),async()=>{ const r=await API.post('/sheet/rows',{items:[{employeeId:empId,weekday:wd,note:val}]}); const o=r.rows&&r.rows[0]; if(o&&o.id!=null){ row.id=o.id; SH.byId.set(o.id,row); } });
+  else enqueue('r'+rowId,()=>API.put('/sheet/row/'+rowId,{note:val}));
+}
+function removeRow(row){
+  const ix=SH.rows.indexOf(row); if(ix<0) return;
+  SH.rows.splice(ix,1); reindex();
+  if(isLinked(row)) enqueue(keyOf(row.employeeId,row.weekday),()=>API.post('/sheet/rows',{items:[{employeeId:row.employeeId,weekday:row.weekday,remove:true}]}));
+  else enqueue('r'+row.id,()=>API.del('/sheet/row/'+row.id));
+  render();
+}
+async function addManual(){
+  const inp=$('sh-manual'); if(!inp) return; const name=inp.value.trim();
+  if(!name) return toast('ناو بنووسە.','error');
+  try{
+    const r=await API.post('/sheet/manual',{category:SH.cat,weekday:SH.day,name,morning:true,evening:true});
+    SH.rows.push({id:r.id,employeeId:null,weekday:SH.day,morning:true,evening:true,note:'',name,realName:name,renamed:false,manual:true,orphan:false});
+    reindex(); inp.value=''; renderList(); refreshLive();
+  }catch(e){ toast(apiErr(e),'error'); }
+}
+async function renameRow(row){
+  if(row.id==null){ toast('چەند چرکەیەک چاوەڕێ بکە و دووبارە هەوڵبدەوە.','info'); return; }
+  const msg=(row.manual||row.orphan)?'ناوی نوێ بنووسە.':'ئەم ناوە تەنها لە خشتەی دەوام دەگۆڕێت (لیستی سەرەکی ناگۆڕێت) و بۆ هەموو ڕۆژەکانی ئەم کەسە. بۆ گەڕانەوە بۆ ناوی لیستی سەرەکی، بەتاڵی بهێڵەرەوە.';
+  let v=await promptDialog('گۆڕینی ناو',msg,row.name);
+  if(v===null) return;
+  v=String(v).trim();
+  if(!row.manual && v===row.realName) v='';
+  if((row.manual) && !v) return toast('ناو پێویستە.','error');
+  try{ await API.put('/sheet/row/'+row.id,{name:v}); await loadData(true); toast('ناو نوێکرایەوە.','success'); }
+  catch(e){ toast(apiErr(e),'error'); }
+}
+async function bulk(what){
+  if(!SH.canEdit) return; const wd=SH.day, vis=visibleEmps();
+  if(!vis.length) return;
+  let items=[];
+  if(what==='m'||what==='e'){ const f=what==='m'?'morning':'evening'; items=vis.map(e=>({employeeId:e.id,weekday:wd,[f]:true})); }
+  else if(what==='wd'){
+    const picks=vis.filter(e=>String(e.workdays||'').split(',').map(s=>s.trim()).includes(String(wd)));
+    if(!picks.length) return toast('لە پرۆفایلی ئەم کەسانە «'+WDAYS[wd]+'» وەک ڕۆژی کار دیاری نەکراوە.','info');
+    items=picks.map(e=>({employeeId:e.id,weekday:wd,morning:true}));
+  } else if(what==='clear'){
+    items=vis.filter(e=>SH.byKey.has(keyOf(e.id,wd))).map(e=>({employeeId:e.id,weekday:wd,remove:true}));
+    if(!items.length) return toast('هیچ ناوێک نییە بۆ لابردن.','info');
+    if(!(await confirmDialog('لابردنی هەموو','ئەم '+ar(items.length)+' کەسە لە ڕۆژی '+WDAYS[wd]+' لادەبرێن (شەفت و تێبینییەکانیان). لیستی سەرەکی ناگۆڕێت. بەردەوام بم؟'))) return;
+  }
+  if(!items.length) return;
+  // نوێکردنەوەی خێرا لەسەر شاشە، پاشان پاشەکەوتکردن
+  for(const it of items){
+    const k=keyOf(it.employeeId,wd); let r=SH.byKey.get(k);
+    if(it.remove){ if(r){ SH.rows.splice(SH.rows.indexOf(r),1); SH.byKey.delete(k); } continue; }
+    if(!r){ const e=SH.emps.find(x=>x.id===it.employeeId); r={id:null,employeeId:e.id,weekday:wd,morning:false,evening:false,note:'',name:e.name,realName:e.name,renamed:false,manual:false,orphan:false}; SH.rows.push(r); SH.byKey.set(k,r); }
+    if(it.morning!==undefined) r.morning=it.morning; if(it.evening!==undefined) r.evening=it.evening;
+  }
+  renderList(); refreshLive();
+  enqueue('bulk',async()=>{
+    for(let i=0;i<items.length;i+=500) await API.post('/sheet/rows',{items:items.slice(i,i+500)});
+    await loadData(true);
+  });
+}
+
+/* ------------------------------ چاپ ------------------------------ */
+const CHECK='<svg viewBox="0 0 24 24"><path d="M6.2 12.6l3.7 3.7 7.9-8.4" fill="none" stroke="#fff" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function pageHtml(o){
+  const t=T(), N=SH.cfg.rowsPerPage, rh=(90/N).toFixed(2), c=o.counts, blank=o.blank;
+  const logo=SH.cfg.logo||EPU_LOGO;
+  const rows=o.chunk.map((r,i)=>{
+    const m=!blank&&r.morning, e=!blank&&r.evening;
+    return `<tr><td class="n">${ar(o.start+i)}</td><td class="nm">${esc(r.name)}</td><td><span class="sp-cb${m?' m':''}">${m?CHECK:''}</span></td><td><span class="sp-cb${e?' e':''}">${e?CHECK:''}</span></td><td class="nt">${blank?'':esc(r.note)}</td></tr>`;
+  }).join('');
+  const v=x=>blank?'':ar(x);
+  const foot=o.last?`<div class="sp-foot">
+      <div class="sp-lead"><span>${esc(t.fLead)}</span><div class="sp-lbox">${v(c.t)}</div></div>
+      <div class="sp-cell"><b>${esc(t.fM)}</b><div class="sp-box">${v(c.m)}</div></div>
+      <div class="sp-cell"><b>${esc(t.fE)}</b><div class="sp-box">${v(c.e)}</div></div>
+      <div class="sp-cell f"><b>${esc(t.fB)}</b><div class="sp-box">${v(c.b)}</div></div></div>`
+    :`<div class="sp-cont"><i></i><span>${esc(t.contLbl)}</span><i></i></div>`;
+  return `<section class="sp-page" style="--rh:${rh}mm"><div class="sp-frame">
+    <div class="sp-hdr">
+      <div class="sp-side l">${SH.cfg.showBuilding?'<img class="sp-bld" src="/sheet-building.svg" alt="">':''}</div>
+      <div class="sp-titles"><div class="sp-uni">${esc(SH.uni)}</div><div class="sp-inst"><i></i><span>${esc(SH.inst)}</span><i></i></div></div>
+      <div class="sp-side r"><div class="sp-sep"></div><img class="sp-logo" src="${esc(logo)}" alt=""></div>
+    </div>
+    <div class="sp-banner"><div class="sp-hex"><span>${esc(t.title)}</span></div></div>
+    <div class="sp-day"><i></i><div>${esc(t.dayLbl)} ${esc(WDAYS[o.wd])}</div><i></i></div>
+    <table class="sp-tb"><colgroup><col class="c1"><col class="c2"><col class="c3"><col class="c4"><col class="c5"></colgroup>
+      <thead><tr><th>${esc(t.hNum)}</th><th>${esc(t.hName)}</th><th>${esc(t.hM)}</th><th>${esc(t.hE)}</th><th>${esc(t.hNote)}</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="sp-sp"></div>${foot}
+    <svg class="sp-swoosh" viewBox="0 0 297 11" preserveAspectRatio="none"><path d="M0,11 L0,3.2 Q148.5,-2.4 297,3.2 L297,11 Z" fill="#0b1f3a"/><path d="M0,2.5 Q148.5,-3.1 297,2.5" fill="none" stroke="#c99a2e" stroke-width=".8"/></svg>
+    <div class="sp-pn">${esc(t.pageLbl)} ${ar(o.page)} ${esc(t.pageOf)} ${ar(o.pages)}</div>
+  </div></section>`;
+}
+function buildPages(days,blank){
+  const N=SH.cfg.rowsPerPage, out=[], skipped=[];
+  for(const wd of days){
+    const rs=sorted(dayRows(wd));
+    if(!rs.length){ skipped.push(wd); continue; }
+    const c=counts(wd), pages=Math.ceil(rs.length/N);
+    for(let p=0;p<pages;p++) out.push(pageHtml({wd,chunk:rs.slice(p*N,(p+1)*N),start:p*N+1,page:p+1,pages,last:p===pages-1,blank,counts:c}));
+  }
+  return {html:out.join(''),skipped,pages:out.length};
+}
+function stagePrint(what){
+  if(!SH.cfg) return {ok:false};
+  const blank=what==='blank';
+  const days=(what==='day')?[SH.day]:SH.cfg.days.slice();
+  const dayOnly=(what==='blank'&&SH.day!=='week')?[SH.day]:days;
+  const r=buildPages(blank?dayOnly:days,blank);
+  if(!r.pages){ toast('هیچ ناوێک نییە بۆ چاپکردن. سەرەتا کەسەکان هەڵبژێرە.','error'); return {ok:false}; }
+  if(r.skipped.length && what!=='day') toast('ئەم ڕۆژانە تێپەڕێنران چونکە هیچ ناوێکیان نییە: '+r.skipped.map(d=>WDAYS[d]).join('، '),'info');
+  let root=$('sheet-print-root');
+  if(!root){ root=document.createElement('div'); root.id='sheet-print-root'; document.body.appendChild(root); }
+  root.innerHTML=r.html; document.body.classList.add('print-sheet');
+  return {ok:true,pages:r.pages,root};
+}
+function unstagePrint(){ document.body.classList.remove('print-sheet'); const r=$('sheet-print-root'); if(r) r.innerHTML=''; }
+async function waitAssets(root){
+  const imgs=[...root.querySelectorAll('img')];
+  await Promise.all(imgs.map(im=>(im.complete&&im.naturalWidth)?Promise.resolve():new Promise(r=>{ im.onload=im.onerror=()=>r(); setTimeout(r,4000); })));
+  try{ if(document.fonts&&document.fonts.ready) await Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,2500))]); }catch(e){}
+}
+async function doPrint(what){
+  const s=stagePrint(what); if(!s.ok) return;
+  await waitAssets(s.root);
+  const done=()=>{ window.removeEventListener('afterprint',done); unstagePrint(); };
+  window.addEventListener('afterprint',done);
+  window.print();
+}
+
+/* ------------------------------ ڕێکخستن ------------------------------ */
+let pendingLogo;   // undefined = نەگۆڕاوە، '' = بگەڕێتەوە بۆ لۆگۆی بنەڕەت
+const TXT_FIELDS=[['title','ناونیشانی خشتە'],['dayLbl','وشەی «ڕۆژ:»'],['hNum','سەرستوونی ژمارە'],['hName','سەرستوونی ناو'],['hM','سەرستوونی بەیانی'],['hE','سەرستوونی ئێوارە'],['hNote','سەرستوونی تێبینی'],
+  ['fLead','کۆی کارمەندانی دەوامدار'],['fM','ژمارەی بەیانی'],['fE','ژمارەی ئێوارە'],['fB','ژمارەی هەردوو کات'],['pageLbl','وشەی «لاپەڕە»'],['pageOf','وشەی «لە»'],['contLbl','تێکستی لاپەڕەی بەردەوام']];
+function openCfg(){
+  if(!SH.canEdit||!SH.cfg) return;
+  pendingLogo=undefined;
+  const c=SH.cfg, isSuper=!!(currentUser&&currentUser.isSuper);
+  $('sh-cfgbox').innerHTML=`<h4>⚙️ ڕێکخستنی خشتەی دەوام</h4>
+    <p>هەموو گۆڕانکارییەک هەمیشە پاشەکەوت دەکرێت و لە شاشە و چاپدا دەردەکەوێت.</p>
+    <h5>ناوی زانکۆ و پەیمانگا</h5>
+    <div class="g"><label class="f">ناوی زانکۆ<input type="text" id="cfg-uni" value="${esc(SH.uni)}" ${isSuper?'':'disabled'} maxlength="120"></label>
+      <label class="f">ناوی پەیمانگا<input type="text" id="cfg-inst" value="${esc(SH.inst)}" ${isSuper?'':'disabled'} maxlength="120"></label></div>
+    <p class="sh-hint" style="margin:6px 0 0">${isSuper?'ئەم دوو ناوە هەمان ناوی ڕێکخستنی سەرەکی پرۆگرامەن و لە هەموو شوێنێک (چوونەژوورەوە، خشتەکانی تر، چاپ) دەگۆڕێن.':'تەنها بەڕێوەبەری سەرەکی دەتوانێت ئەم دوو ناوە بگۆڕێت.'}</p>
+    <h5>تێکستی خشتە</h5>
+    <div class="g">${TXT_FIELDS.map(([k,l])=>`<label class="f">${l}<input type="text" data-k="${k}" value="${esc(c.texts[k])}" maxlength="120"></label>`).join('')}</div>
+    <h5>چاپ و شێوە</h5>
+    <div class="g"><label class="f">ژمارەی ڕیز لە هەر لاپەڕەیەک (٦ تا ١٤)<input type="number" id="cfg-rows" min="6" max="14" value="${c.rowsPerPage}"></label></div>
+    <div style="margin-top:10px"><div class="sh-hint" style="margin-bottom:6px">ڕۆژەکانی کار کە لە خشتەکەدا دەردەکەون:</div>
+      <div class="days">${[0,1,2,3,4,5,6].map(d=>`<label><input type="checkbox" class="cfg-day" value="${d}" ${c.days.includes(d)?'checked':''}> ${esc(WDAYS[d])}</label>`).join('')}</div></div>
+    <div style="margin-top:12px"><label style="display:flex;gap:8px;align-items:center;font-weight:700;font-size:13px"><input type="checkbox" id="cfg-bld" ${c.showBuilding?'checked':''}> وێنەی بینای زانکۆ لە سەرەوەی خشتەکە نیشان بدە</label></div>
+    <h5>لۆگۆ</h5>
+    <div class="logo"><img id="cfg-logoimg" src="${esc(c.logo||EPU_LOGO)}" alt="">
+      <div><div class="sh-hint">لۆگۆی خشتەی دەوام (PNG / JPG / SVG). بێ بڕین و گۆڕینی ڕەنگ، تەنها بچووک دەکرێتەوە ئەگەر زۆر گەورە بێت.</div>
+      <div class="sh-bar" style="margin-top:8px"><input type="file" id="cfg-logofile" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="width:auto;margin:0">
+      <button class="sh-btn" type="button" id="cfg-logoreset">گەڕانەوە بۆ لۆگۆی EPU</button></div></div></div>
+    <div class="modal-actions"><button class="btn teal" id="cfg-save">💾 پاشەکەوتکردن</button>
+      <button class="btn ghost" id="cfg-defaults" style="color:var(--text)">گەڕانەوەی تێکستەکان بۆ بنەڕەت</button>
+      <button class="btn ghost" id="cfg-cancel" style="color:var(--text)">داخستن</button></div>`;
+  const m=$('sheet-cfg-modal'); m.classList.add('show');
+  const close=()=>{ m.classList.remove('show'); };
+  m.onclick=e=>{ if(e.target===m) close(); };
+  $('cfg-cancel').onclick=close;
+  $('cfg-defaults').onclick=()=>{ document.querySelectorAll('#sh-cfgbox input[data-k]').forEach(i=>{ i.value=SH.defaults[i.dataset.k]||''; }); };
+  $('cfg-logoreset').onclick=()=>{ pendingLogo=''; $('cfg-logoimg').src=EPU_LOGO; $('cfg-logofile').value=''; };
+  $('cfg-logofile').onchange=async ev=>{
+    const f=ev.target.files&&ev.target.files[0]; if(!f) return;
+    try{ pendingLogo=await fileToLogo(f); $('cfg-logoimg').src=pendingLogo; }catch(e){ toast(e.message||'وێنەکە نەخوێندرایەوە.','error'); ev.target.value=''; }
+  };
+  $('cfg-save').onclick=async()=>{
+    const texts={}; document.querySelectorAll('#sh-cfgbox input[data-k]').forEach(i=>{ texts[i.dataset.k]=i.value; });
+    const days=[...document.querySelectorAll('#sh-cfgbox .cfg-day:checked')].map(i=>+i.value);
+    if(!days.length) return toast('لانیکەم یەک ڕۆژ هەڵبژێرە.','error');
+    const body={texts,days,rowsPerPage:+$('cfg-rows').value||10,showBuilding:$('cfg-bld').checked};
+    if(pendingLogo!==undefined) body.logo=pendingLogo;
+    if(currentUser&&currentUser.isSuper){ body.uniName=$('cfg-uni').value.trim(); body.instName=$('cfg-inst').value.trim(); }
+    try{
+      const r=await API.put('/sheet/config',body);
+      const namesChanged=(r.uniName!==SH.uni||r.instName!==SH.inst);
+      SH.cfg=r.config; SH.uni=r.uniName; SH.inst=r.instName;
+      if(namesChanged){ uniName=r.uniName; instName=r.instName; try{ applyBranding(); }catch(e){} try{ generateSystem(); }catch(e){} }
+      if(SH.day!=='week' && !SH.cfg.days.includes(SH.day)) SH.day=SH.cfg.days[0];
+      close(); toast('ڕێکخستنەکان پاشەکەوتکران.','success'); chooseMode(); render();
+    }catch(e){ toast(apiErr(e),'error'); }
+  };
+}
+function fileToLogo(file){
+  return new Promise((res,rej)=>{
+    if(file.type==='image/svg+xml'){
+      if(file.size>300000) return rej(new Error('فایلی SVG زۆر گەورەیە (زیاتر لە ٣٠٠ کیلۆبایت).'));
+      const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(new Error('وێنەکە نەخوێندرایەوە.')); fr.readAsDataURL(file); return;
+    }
+    if(!/^image\/(png|jpeg|webp)$/.test(file.type)) return rej(new Error('تەنها PNG، JPG، WEBP یان SVG.'));
+    const url=URL.createObjectURL(file), img=new Image();
+    img.onload=()=>{
+      let s=Math.min(1,800/Math.max(img.naturalWidth,img.naturalHeight)), out='';
+      for(let i=0;i<6;i++){
+        const w=Math.max(1,Math.round(img.naturalWidth*s)), h=Math.max(1,Math.round(img.naturalHeight*s));
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h);
+        out=cv.toDataURL(file.type==='image/jpeg'?'image/jpeg':'image/png',0.92);
+        if(out.length<=850000) break; s*=0.7;
+      }
+      URL.revokeObjectURL(url);
+      if(out.length>850000) return rej(new Error('وێنەکە زۆر گەورەیە.'));
+      res(out);
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error('وێنەکە نەخوێندرایەوە.')); };
+    img.src=url;
+  });
+}
+
+/* ------------------------------ ڕووداوەکان ------------------------------ */
+const root=$('sheet-container');
+let st; const later=(fn,ms)=>{ clearTimeout(st); st=setTimeout(fn,ms); };
+root.addEventListener('click',async e=>{
+  const t=e.target.closest('[data-act]'); if(!t||!SH.cfg) return;
+  const act=t.dataset.act;
+  try{
+    if(act==='cat'){ SH.cat=t.dataset.cat; try{ localStorage.setItem('epu_sheet_cat',SH.cat); }catch(_){} SH.search=''; $('sh-body').innerHTML='<div class="sh-empty">چاوەڕێ بکە...</div>'; await loadData(false); }
+    else if(act==='day'){ SH.day=t.dataset.d==='week'?'week':+t.dataset.d; try{ localStorage.setItem('epu_sheet_day',String(SH.day)); }catch(_){} SH.search=''; chooseMode(); render(); }
+    else if(act==='mode'){ SH.mode=t.dataset.m; SH.search=''; render(); }
+    else if(act==='gopick'){ SH.mode='pick'; render(); }
+    else if(act==='print') await doPrint(t.dataset.w);
+    else if(act==='cfg') openCfg();
+    else if(act==='bulk') await bulk(t.dataset.w);
+    else if(act==='addmanual') await addManual();
+    else if(act==='rename'){ const r=SH.byId.get(+t.dataset.id); if(r) await renameRow(r); }
+    else if(act==='rmrow'){ const r=SH.byId.get(+t.dataset.id)||(t.dataset.e?SH.byKey.get(keyOf(+t.dataset.e,+t.dataset.d)):null); if(r) removeRow(r); }
+  }catch(err){ toast(apiErr(err),'error'); }
+});
+root.addEventListener('change',e=>{
+  const t=e.target, act=t.dataset&&t.dataset.act; if(!act||!SH.cfg) return;
+  const wd=+t.dataset.d, eid=t.dataset.e?+t.dataset.e:null, rid=t.dataset.id?+t.dataset.id:null;
+  if(act==='tog'){
+    const row=setShift(eid,rid,wd,t.dataset.f,t.checked);
+    const tr=t.closest('tr'); if(tr&&SH.mode==='pick'&&SH.day!=='week') tr.classList.toggle('sel',!!(row&&(row.morning||row.evening)));
+  } else if(act==='note'){ setNote(eid,rid,wd,t.value.trim()); }
+  else if(act==='mvsel'){
+    const r=SH.byId.get(rid); if(!r) return;
+    const to=t.value;
+    enqueue('r'+rid,()=>API.put('/sheet/row/'+rid,{category:to})).then(async()=>{
+      if(SH.failed||to===SH.cat) return;   // ئەگەر نەگواستراوەتەوە، enqueue خۆی داتاکانی ڕاست کردووەتەوە
+      await loadData(true); toast('ناوەکە گوازرایەوە بۆ لیستی «'+CAT_LABEL[to]+'».','success');
+    });
+  }
+});
+root.addEventListener('input',e=>{
+  if(e.target.id!=='sh-search') return;
+  SH.search=e.target.value;
+  later(()=>{ if(SH.day==='week') renderWeekRows(); else renderList(); },120);
+});
+root.addEventListener('keydown',e=>{ if(e.target.id==='sh-manual'&&e.key==='Enter'){ e.preventDefault(); addManual(); } });
+
+window.openSheetTab=openSheetTab;
+window.EPU_SHEET={state:SH,buildPages,stagePrint,unstagePrint,counts};
+})();
+</script>
+<!-- SHEET-JS-END -->
 </body>
 </html>
